@@ -147,7 +147,16 @@ class GroupDetailView(APIView):
         if queryset is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         serializer = serializers.GroupSerializer(queryset)
+        
+        # 로그인한 사용자 가져오기 
+        group = models.Group.objects.get(user=request.code)
+        user = get_object_or_404(models.UserInfo, user=request.user)
+        for user in group.user :
+            if group.user.code != group.code:
+                group.user.add(user)
         return Response(serializer.data)
+    
+    # put은 나중에 삭제해도 됨 
     def put(self, request, code):
         queryset = self.get_object(code)
         if queryset is None:

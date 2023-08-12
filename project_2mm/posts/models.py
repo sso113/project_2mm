@@ -4,6 +4,17 @@ from phonenumber_field.modelfields import PhoneNumberField
 import uuid
 User = get_user_model()
 
+
+# 사용자 정보 관리 
+class UserInfo(models.Model) :
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    profile = models.ImageField(verbose_name="프로필이미지", upload_to="user_profile", null=True, blank=True)
+    # phoneNumber 필드 : 모듈 사용함 
+    # phoneNumber = UserInfo.phone.as_e164 로 값을 가져오면 되어요 
+    phone = PhoneNumberField(verbose_name="전화번호", max_length=15, unique=True, null=False, blank=False)
+    def __str__(self):
+        return str(self.id)
+
 # 게시글 데이터 저장 
 class Post(models.Model) :
     # group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
@@ -35,7 +46,7 @@ class Album(models.Model) :
 # 사용자 그룹 관리 
 class Group(models.Model) :
     name = models.CharField(verbose_name="모임명", max_length=24)
-    #user = models.ManyToManyField()
+    user = models.ManyToManyField(UserInfo)
     info = models.CharField(verbose_name="모임소개글", max_length=128, null=True, blank=True)
     code = models.UUIDField(primary_key=True, verbose_name="모임초대코드", default=uuid.uuid4, unique=True)
     profile = models.ImageField(verbose_name="모임이미지", upload_to='group_profile', null=True)
@@ -47,14 +58,3 @@ class Group(models.Model) :
 
     def __str__(self):
         return self.name
-
-# 사용자 정보 관리 
-class UserInfo(models.Model) :
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    profile = models.ImageField(verbose_name="프로필이미지", upload_to="user_profile", null=True, blank=True)
-    # phoneNumber 필드 : 모듈 사용함 
-    # phoneNumber = UserInfo.phone.as_e164 로 값을 가져오면 되어요 
-    phone = PhoneNumberField(verbose_name="전화번호", max_length=15, unique=True, null=False, blank=False)
-    def __str__(self):
-        return str(self.id)
-    
