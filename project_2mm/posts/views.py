@@ -66,27 +66,19 @@ class GroupPostView(views.APIView):
         else:
             return Response({'error': '인증되지 않은 사용자'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    
-    # def put(self, request, code, post_id):
-    #     # 게시글 수정 로직을 여기에 작성
-    #     pass
-    
+    # delete는 나중에 필요하면 추가
     # def delete(self, request, code, post_id):
-    #     # 게시글 삭제 로직을 여기에 작성
     #     pass
 
 #특정 그룹의 특정 게시글 상세 페이지 
 class GroupPostDetailView(views.APIView):
     def get(self, request, code, post_id):
-        user = request.user  # 현재 로그인한 사용자
-        post = get_object_or_404(Post, id=post_id)
-        userinfo = get_object_or_404(models.UserInfo, user=user)  # 현재 사용자의 UserInfo 가져오기
-        is_liked = post in userinfo.like_posts.all()  # 해당 게시글이 사용자의 좋아요 목록에 있는지 확인
-
-        serializer = PostSerializer(post)
-        data = serializer.data
-        data['is_liked'] = is_liked  # 좋아요 여부 정보 추가
-        return Response(data, status=status.HTTP_200_OK)
+        try:
+            post = Post.objects.get(group_code__code=code, id=post_id)
+            serializer = serializers.GroupPostSerializer(post)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Post.DoesNotExist:
+            return Response({'error': '게시글을 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, code, post_id):
         user = request.user  # 현재 로그인한 사용자
@@ -101,11 +93,22 @@ class GroupPostDetailView(views.APIView):
 
         is_liked = post in userinfo.like_posts.all()
 
-        serializer = PostSerializer(post)
+        serializer = serializers.GroupPostSerializer(post)
         data = serializer.data
         data['is_liked'] = is_liked
 
         return Response(data, status=status.HTTP_201_CREATED)
+
+    def patch(self, request, code, post_id):
+        try:
+            post = Post.objects.get(group_code__code=code, id=post_id)
+            post.userinfo.like_posts.add(post)
+            serializer = serializers.GroupPostSerializer(post)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Post.DoesNotExist:
+            print('게시글 id 없음')
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
 # 앨범 
 class AlbumViewSet(ModelViewSet):
     queryset = Post.objects.all()

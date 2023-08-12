@@ -18,5 +18,5 @@ urlpatterns = [
     path('album/<int:post_id>/', views.DownloadView.as_view({'get': 'download'}), name='download_image'),
 
     path('group/<uuid:group_code>/posts/', views.GroupPostView.as_view(), name='group-post-list-create'),
-    #path('group/<uuid:code>/posts/<int:post_id>/', GroupPostDetailView.as_view(), name='group-post-detail'),
+    path('group/<uuid:code>/posts/<int:post_id>/', views.GroupPostDetailView.as_view(), name='group-post-detail'),
 ]

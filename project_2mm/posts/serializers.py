@@ -26,4 +26,4 @@ class CommentSerializer(ModelSerializer):
 class GroupPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ['content', 'image']
+        fields = ['id', 'content', 'image']
