@@ -11,7 +11,7 @@ urlpatterns = [
     # path('phonenumber/', views.PhoneNumberView.as_view(), name='phone-number-view'),
     # path('password/', views.PasswordView.as_view(), name='password-view'),
     path('signup/', views.SingupView.as_view(), name='signup'),
-
+     path('update-password/', views.PasswordView.as_view(), name='update-password'),
     path('group/', views.GroupListCreateView.as_view(), name='group-list-create'),
     path('group/<uuid:code>/', views.GroupDetailView.as_view(), name='group-detail'),
     # 특정 그룹의 게시글 작성 

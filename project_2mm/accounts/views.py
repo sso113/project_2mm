@@ -90,16 +90,30 @@ class SingupView(APIView):
             serializer = serializers.UsersSerializer(user_info, data=request.data, partial=True)
             
             if serializer.is_valid():
-                #print(serializer.error)
-                serializer.update(user_info, serializer.validated_data)  # update 메서드 호출
-                print('업데이트 됐음')
+                if 'phone' in serializer.validated_data:
+                    user_info.phone = serializer.validated_data['phone']
+                    user_info.save()
+
+                serializer.save()
                 return Response(serializer.data)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+               
         except UserInfo.DoesNotExist:
             return Response({'detail': 'User info not found.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class PasswordView(APIView):
+    def patch(self, request):
+        serializer = serializers.PasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            password = serializer.validated_data.get('password')
+            user = request.user
+            user.set_password(password)
+            user.save()
+            return Response({'message': '비밀번호가 업데이트되었습니다.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # group 개별 코드 발급 위한 viewset
 class GroupListCreateView(generics.ListCreateAPIView):
