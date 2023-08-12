@@ -82,10 +82,6 @@ class SingupView(APIView):
             if user_info is not None :
                 print("유저 정보 생성됐다.")
             token, created = Token.objects.get_or_create(user=user)
-        #     return Response({ 'token': token.key}, status=status.HTTP_200_OK)
-        # else: 
-        #     return Response({'넘어가는 거 막기..'}, status=status.HTTP_400_BAD_REQUEST)
-            
             return Response({'token': token.key}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -99,8 +95,8 @@ class SingupView(APIView):
             serializer = serializers.UsersSerializer(user_info, data=request.data, partial=True)
             if serializer.is_valid():
                 #print(serializer.error)
-                # serializer.update(user_info, serializer.validated_data)  # update 메서드 호출
-                # print('업데이트 됐음')
+                serializer.update(user_info, serializer.validated_data)  # update 메서드 호출
+                print('업데이트 됐음')
                 serializer.save() 
                 return Response(serializer.data)
             else:
