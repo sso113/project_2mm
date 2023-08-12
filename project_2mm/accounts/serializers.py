@@ -18,8 +18,7 @@ class UsernameSerializer(serializers.Serializer):
 
 
 class UsersSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='user.username')
-    
+    #user = serializers.ReadOnlyField(source='user.username')
     class Meta:
         model = models.UserInfo
         fields = '__all__'
@@ -28,14 +27,14 @@ class UsersSerializer(serializers.ModelSerializer):
         # 전화번호 업데이트
         if 'phone' in validated_data:
             instance.phone = validated_data['phone']
-
-        # # 비밀번호 업데이트 / usersSerializer에서는 user와 phone필드만 업데이트하게 주석처리해두었어요
-        # user = instance.user
-        # if 'password' in validated_data:
-        #     print("Debug: Password field found in validated_data")
-        #     new_password = validated_data['password']['password']
-        #     user.set_password(new_password) 
-        #     user.save()
+        #user = instance.user
+        # 비밀번호 업데이트
+        if 'password' in validated_data:
+            new_password = validated_data['password']
+            # user.set_password(new_password)
+            # user.save()
+            instance.user.set_password(new_password)
+            instance.user.save()
 
         instance.save()
         return instance
