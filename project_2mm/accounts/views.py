@@ -4,12 +4,9 @@ from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework import viewsets, generics
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login , logout
-
-
 from .serializers import UsernameSerializer
 from . import serializers
 from phonenumber_field.modelfields import PhoneNumber
@@ -86,48 +83,23 @@ class SingupView(APIView):
     
     def patch(self, request, format=None):
         try:
-            queryset = models.UserInfo.objects.get(user=request.user)
-            serializer = serializers.UsersSerializer(queryset, data=request.data, partial=True)
+            user_info = UserInfo.objects.get(user=request.user)
+            print('입력받은 데이터는 ')
+            print(request.data)
+
+            serializer = serializers.UsersSerializer(user_info, data=request.data, partial=True)
+            
             if serializer.is_valid():
-                serializer.save()
+                #print(serializer.error)
+                serializer.update(user_info, serializer.validated_data)  # update 메서드 호출
+                print('업데이트 됐음')
+                return Response(serializer.data)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except models.User.DoesNotExist:
-            return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+        except UserInfo.DoesNotExist:
+            return Response({'detail': 'User info not found.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        # 성주
-        # try:
-        #     queryset = models.UserInfo.objects.get(user=request.user)
-        #     serializer = serializers.UsersSerializer(queryset, data=request.data, partial=True)
-        #     if serializer.is_valid():
-        #         serializer.save()
-        #         return Response(serializer.data, status=status.HTTP_200_OK)
-        #     else:
-        #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        # except models.UserInfo.DoesNotExist:
-        #     return Response({'error': 'User info not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    # def patch(self, request, format=None):
-    #     try:
-    #         queryset = models.UserInfo.objects.get(user=request.user)
-    #         serializer = serializers.UsersSerializer(queryset, data=request.data, partial=True)
-    #         if serializer.is_valid():
-    #             serializer.save()
-    #         else:
-    #             print('뭐가 안되고 있음')
-    #     except models.UserInfo.DoesNotExist:
-    #         return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
-        # except Exception as e:
-        #     return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)     
-        # try:
-        #         # 유저 생성 및 저장
-        #         user = User.objects.create_user(username=username, password=password)
-        #         user_info = UserInfo.objects.create(user=user, phone=phone)
-        #     except Exception as e:
-        #         return Response({'error': '회원 가입 오류.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        #     return Response({'message': '회원 가입 성공'})
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # group 개별 코드 발급 위한 viewset
 class GroupListCreateView(generics.ListCreateAPIView):
