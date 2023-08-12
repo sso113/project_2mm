@@ -106,6 +106,17 @@ class SingupView(APIView):
         except Exception as e:
             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class PasswordView(APIView):
+    def patch(self, request):
+        serializer = serializers.PasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            password = serializer.validated_data.get('password')
+            user = request.user
+            user.set_password(password)
+            user.save()
+            return Response({'message': '비밀번호가 업데이트되었습니다.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 # group 개별 코드 발급 위한 viewset
 class GroupListCreateView(generics.ListCreateAPIView):
     queryset = models.Group.objects.all()

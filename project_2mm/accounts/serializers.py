@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 
 from phonenumber_field.modelfields import PhoneNumberField
 from posts import models
@@ -13,6 +14,8 @@ class UsernameSerializer(serializers.Serializer):
         # 코드 값을 무시하고 업데이트할 필드만 validated_data에서 추출합니다.
         validated_data.pop('username', None)
         return super().update(instance, validated_data)
+    
+
 
 class UsersSerializer(serializers.ModelSerializer):
     #user = serializers.ReadOnlyField(source='user.username')
@@ -35,6 +38,9 @@ class UsersSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+#비밀번호 업데이트를 위해서 시리얼라이저 추가.. 
+class PasswordSerializer(serializers.Serializer):
+    password = serializers.CharField()
 
 # 모임코드생성 
 class GroupSerializer(serializers.ModelSerializer):
