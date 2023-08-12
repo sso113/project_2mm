@@ -11,11 +11,23 @@ from django.shortcuts import get_object_or_404
 from . import models
 from . import serializers
 
-# 게시글
+# 특정 그룹 게시글 작성 
 class PostViewSet(viewsets.ModelViewSet):
     #post_list
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+
+    def post(self, request, code):
+        data = request.data
+        data['group_code'] = code  # 그룹 코드를 요청 데이터에 추가
+
+        serializer = PostSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            print('게시글저장')
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     #post_create
     def create(self,request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -30,11 +42,17 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response(serializer.data,{'error'}, status=status.HTTP_401_UNAUTHORIZED)
     #post_delete (권한 삭제 추가 필요)
 
+#특정 그룹의 특정 게시글 상세 페이지 
+class GroupPostDetailView(views.APIView):
+    def get(self, request, code, post_id):
+        post = get_object_or_404(Post, id=post_id, group_code=code) 
+        serializer = PostSerializer(post)
+        return Response(serializer.data)
+    
 # 앨범 
 class AlbumViewSet(ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = serializers.AlbumSerializer
-
 
 #댓글
 class CommentViewSet(ModelViewSet):
@@ -58,15 +76,26 @@ class CommentViewSet(ModelViewSet):
         else:
             print("id값 못 받아오는 중")
             return Response(serializer.data,{'error'},status=status.HTTP_401_UNAUTHORIZED)
+    
+    # 댓글 수정 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        if request.user == instance.writer: 
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
 class DownloadView(viewsets.ViewSet):
-    def download(self, request, post_id):  # download 액션을 지원하는 메서드
+    def download(self, request, post_id): 
         post = get_object_or_404(models.Post, id=post_id)
         image = post.image
         path = image.path
         response = FileResponse(open(path, 'rb'))
         return response
 
-
-    def list(self, request):  # list 액션을 지원하는 메서드
+    def list(self, request):  
         return Response({"detail": "This endpoint supports GET only."})

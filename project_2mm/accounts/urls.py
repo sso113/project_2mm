@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter, DefaultRouter
 from . import views
-
+from posts.views import PostViewSet, GroupPostDetailView
 urlpatterns = [
     #로그인 
     path('api/login/', views.Loginview.as_view(), name='phone_login_view'),
@@ -14,4 +14,7 @@ urlpatterns = [
 
     path('group/', views.GroupListCreateView.as_view(), name='group-list-create'),
     path('group/<uuid:code>/', views.GroupDetailView.as_view(), name='group-detail'),
+    # 특정 그룹의 게시글 작성 
+    path('group/<uuid:code>/posts/', PostViewSet.as_view({'get': 'list'}), name='group-post-create'), 
+    path('group/<uuid:code>/posts/<int:post_id>/', GroupPostDetailView.as_view(), name='group-post-detail'),
 ]
