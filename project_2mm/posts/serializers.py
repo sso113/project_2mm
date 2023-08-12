@@ -3,10 +3,15 @@ from rest_framework.serializers import ModelSerializer
 from .models import Post, Comment
 from . import models
 
-class PostSerializer(ModelSerializer):
+class PostSerializer(serializers.ModelSerializer):
+    writer = serializers.SerializerMethodField()
+
     class Meta:
         model = Post
-        fields = [ 'id','content','image','created_at' ,'writer']
+        fields = '__all__'
+    
+    def get_writer(self, obj):
+        return obj.writer.user.username if obj.writer else None
 
 class AlbumSerializer(ModelSerializer):
     class Meta:
@@ -18,3 +23,7 @@ class CommentSerializer(ModelSerializer):
         model = Comment
         fields = [ 'id','post','comment','writer','created_at' ]
 
+class GroupPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['id', 'content', 'image']
