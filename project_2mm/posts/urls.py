@@ -14,8 +14,6 @@ comment_router.register('comments',CommentViewSet,basename='comment')
 urlpatterns = [
     path('', include(post_router.urls)),
     path('posts/<int:post_id>/',include(comment_router.urls)),
-    path('', include(album_router.urls)),
+    path('', include(album_router.urls)), # 앨범경로 
     path('album/<int:post_id>/', views.DownloadView.as_view({'get': 'download'}), name='download_image'),
-    #path('album/<int:post_id>/', views.DownloadView.as_view(), name='download_image'),
-    #path('album/', views.AlbumAPIView.as_view(), name='album-list'), # 업로드 된 사진 전체
 ]

@@ -18,11 +18,3 @@ class CommentSerializer(ModelSerializer):
         model = Comment
         fields = [ 'id','post','comment','writer','created_at' ]
 
-
-# class AlbumSerializer(ModelSerializer) :
-#     writer = serializers.ReadOnlyField(source = 'writer.username')
-#     class Meta :
-#         model = models.Album
-#         fields = ['image', 'created_at', 'writer', 'test']
-#         #fields = '__all__'
-
