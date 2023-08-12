@@ -27,3 +27,8 @@ class GroupPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['id', 'content', 'image']
+
+class GroupPlanSerializer(serializers.ModelSerializer) :
+    class Meta :
+        model = models.Plan
+        fields = ['id', 'month', 'date', 'title', 'memo']

@@ -42,6 +42,7 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response(serializer.data,{'error'}, status=status.HTTP_401_UNAUTHORIZED)
     #post_delete (권한 삭제 추가 필요)
 
+# 그룹별 게시글 목록 
 class GroupPostView(views.APIView):
     def get(self, request, group_code):
         try:
@@ -50,7 +51,7 @@ class GroupPostView(views.APIView):
             serializer = serializers.GroupPostSerializer(posts, many=True)
             return Response(serializer.data)
         except models.Group.DoesNotExist:
-            return Response({'error': '그룹을 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': '그룹 x'},status=status.HTTP_404_NOT_FOUND)
     
     def post(self, request, group_code):
         if request.user.is_authenticated:
@@ -64,13 +65,13 @@ class GroupPostView(views.APIView):
 
             return Response(serializers.GroupPostSerializer(post).data, status=status.HTTP_201_CREATED)
         else:
-            return Response({'error': '인증되지 않은 사용자'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': '사용자 x'},status=status.HTTP_401_UNAUTHORIZED)
 
     # delete는 나중에 필요하면 추가
     # def delete(self, request, code, post_id):
     #     pass
 
-#특정 그룹의 특정 게시글 상세 페이지 
+#그룹의 게시글 상세 페이지 
 class GroupPostDetailView(views.APIView):
     def get(self, request, code, post_id):
         try:
@@ -78,7 +79,7 @@ class GroupPostDetailView(views.APIView):
             serializer = serializers.GroupPostSerializer(post)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Post.DoesNotExist:
-            return Response({'error': '게시글을 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': '게시글x'}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, code, post_id):
         user = request.user  # 현재 로그인한 사용자
@@ -106,13 +107,7 @@ class GroupPostDetailView(views.APIView):
             serializer = serializers.GroupPostSerializer(post)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Post.DoesNotExist:
-            print('게시글 id 없음')
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-# 앨범 
-class AlbumViewSet(ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = serializers.AlbumSerializer
+            return Response({'error': '게시글 x'},status=status.HTTP_404_NOT_FOUND)
 
 #댓글
 class CommentViewSet(ModelViewSet):
@@ -134,8 +129,7 @@ class CommentViewSet(ModelViewSet):
             headers=self.get_success_headers(serializer.data) 
             return Response(serializer.data,headers=headers)
         else:
-            print("id값 못 받아오는 중")
-            return Response(serializer.data,{'error'},status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': '사용지x'},status=status.HTTP_401_UNAUTHORIZED)
     
     # 댓글 수정 
     def update(self, request, *args, **kwargs):
@@ -149,6 +143,12 @@ class CommentViewSet(ModelViewSet):
         else:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
+# 앨범 
+class AlbumViewSet(ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = serializers.AlbumSerializer
+
+# 앨범 내 다운로드 기능 
 class DownloadView(viewsets.ViewSet):
     def download(self, request, post_id): 
         post = get_object_or_404(models.Post, id=post_id)
@@ -159,3 +159,57 @@ class DownloadView(viewsets.ViewSet):
 
     def list(self, request):  
         return Response({"detail": "This endpoint supports GET only."})
+
+# 그룹별 일정 목록 
+class GroupPlanView(views.APIView):
+    def get(self, request, group_code):
+        try:
+            group_code = models.Group.objects.get(code=group_code)
+            plan = models.Plan.objects.filter(group_code=group_code)
+            serializer = serializers.GroupPlanSerializer(plan, many=True)
+            return Response(serializer.data)
+        
+        except models.Plan.DoesNotExist:
+            return Response({'error': '일정x'}, status=status.HTTP_404_NOT_FOUND)
+    
+    def post(self, request, group_code):
+        if request.user.is_authenticated:
+            serializer = serializers.GroupPlanSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            user = request.user  # 로그인한 사용자 가져오기
+
+            group = get_object_or_404(models.Group, code=group_code)
+            plan = serializer.save(group_code=group)  # group_code에 해당 그룹 할당
+
+            return Response(serializers.GroupPlanSerializer(plan).data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'error': '사용자 x'},status=status.HTTP_401_UNAUTHORIZED)
+
+    # plan delete도 나중에 필요하면 추가
+    # def delete(self, request, code, post_id):
+    #     pass
+
+#그룹의 게시글 상세 페이지 
+class GroupPlanDetailView(views.APIView):
+    def get(self, request, code, plan_id):
+        try:
+            plan = Post.objects.get(group_code__code=code, id=plan_id)
+            serializer = serializers.GroupPlanSerializer(plan)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Post.DoesNotExist:
+            return Response({'error': '일정 x'}, status=status.HTTP_404_NOT_FOUND)
+
+    def patch(self, request, plan_id, format=None):
+        try:
+            queryset = models.Plan.objects.get(id=plan_id)
+            serializer = serializers.GroupPlanSerializer(queryset, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except models.Plan.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)

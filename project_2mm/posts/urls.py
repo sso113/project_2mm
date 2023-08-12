@@ -17,6 +17,11 @@ urlpatterns = [
     path('', include(album_router.urls)), # 앨범경로 
     path('album/<int:post_id>/', views.DownloadView.as_view({'get': 'download'}), name='download_image'),
 
-    path('group/<uuid:group_code>/posts/', views.GroupPostView.as_view(), name='group-post-list-create'),
-    path('group/<uuid:code>/posts/<int:post_id>/', views.GroupPostDetailView.as_view(), name='group-post-detail'),
+    # 모임별 게시글
+    path('group/<uuid:group_code>/posts/', views.GroupPostView.as_view(), name='post_list'),
+    path('group/<uuid:code>/posts/<int:post_id>/', views.GroupPostDetailView.as_view(), name='post_detail'),
+
+    # 모임별 일정 
+    path('group/<uuid:group_code>/plans/', views.GroupPlanView.as_view(), name='plan_list'),
+    path('group/<uuid:code>/plans/<int:plan_id>/', views.GroupPlanDetailView.as_view(), name='plan_detail'),
 ]
