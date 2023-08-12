@@ -6,7 +6,8 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import  IsAuthenticated
 from .models import Post,Comment
 from .serializers import PostSerializer,CommentSerializer
-
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 from . import models
 from . import serializers
 
@@ -28,6 +29,11 @@ class PostViewSet(viewsets.ModelViewSet):
             print("이거 뜨면 세션값 못 받고 있는거임 수정해야함.ㅜㅜ")
             return Response(serializer.data,{'error'}, status=status.HTTP_401_UNAUTHORIZED)
     #post_delete (권한 삭제 추가 필요)
+
+# 앨범 
+class AlbumViewSet(ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = serializers.AlbumSerializer
 
 
 #댓글
@@ -54,21 +60,32 @@ class CommentViewSet(ModelViewSet):
             return Response(serializer.data,{'error'},status=status.HTTP_401_UNAUTHORIZED)
         
                 
-# 사진 리스트 
-class AlbumAPIView(views.APIView):
-    def get(self, request):
-        serializer = serializers.AlbumSerializer(models.Album.objects.all(), many=True)
-        return Response(serializer.data)
-    def post(self, request):
-        serializer = serializers.AlbumSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400) 
-    # 로그인 완료 되면 확인하기 
-    # def delete(self, request, pk):
-    #     album = models.Album.objects.get(pk=pk)
-    #     if album is not None :
-    #         if album.writer == request.user :
-    #             album.delete()
+# # 사진 리스트 
+# class AlbumAPIView(views.APIView):
+#     def get(self, request):
+#         serializer = serializers.AlbumSerializer(models.Album.objects.all(), many=True)
+#         return Response(serializer.data)
+#     def post(self, request):
+#         serializer = serializers.AlbumSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=201)
+#         return Response(serializer.errors, status=400) 
+#     # 로그인 완료 되면 확인하기 
+#     # def delete(self, request, pk):
+#     #     album = models.Album.objects.get(pk=pk)
+#     #     if album is not None :
+#     #         if album.writer == request.user :
+#     #             album.delete()
 
+class DownloadView(viewsets.ViewSet):
+    def download(self, request, post_id):  # download 액션을 지원하는 메서드
+        post = get_object_or_404(models.Post, id=post_id)
+        image = post.image
+        path = image.path
+        response = FileResponse(open(path, 'rb'))
+        return response
+
+
+    def list(self, request):  # list 액션을 지원하는 메서드
+        return Response({"detail": "This endpoint supports GET only."})
