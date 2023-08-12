@@ -42,13 +42,70 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response(serializer.data,{'error'}, status=status.HTTP_401_UNAUTHORIZED)
     #post_delete (권한 삭제 추가 필요)
 
+class GroupPostView(views.APIView):
+    def get(self, request, group_code):
+        try:
+            group = models.Group.objects.get(code=group_code)
+            posts = Post.objects.filter(group_code=group)
+            serializer = serializers.GroupPostSerializer(posts, many=True)
+            return Response(serializer.data)
+        except models.Group.DoesNotExist:
+            return Response({'error': '그룹을 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    def post(self, request, group_code):
+        if request.user.is_authenticated:
+            serializer = serializers.GroupPostSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            user = request.user  # 로그인한 사용자 가져오기
+
+            group = get_object_or_404(models.Group, code=group_code)
+            post = serializer.save(writer=user, group_code=group)  # group_code에 해당 그룹 할당
+
+            return Response(serializers.GroupPostSerializer(post).data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'error': '인증되지 않은 사용자'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    
+    # def put(self, request, code, post_id):
+    #     # 게시글 수정 로직을 여기에 작성
+    #     pass
+    
+    # def delete(self, request, code, post_id):
+    #     # 게시글 삭제 로직을 여기에 작성
+    #     pass
+
 #특정 그룹의 특정 게시글 상세 페이지 
 class GroupPostDetailView(views.APIView):
     def get(self, request, code, post_id):
-        post = get_object_or_404(Post, id=post_id, group_code=code) 
+        user = request.user  # 현재 로그인한 사용자
+        post = get_object_or_404(Post, id=post_id)
+        userinfo = get_object_or_404(models.UserInfo, user=user)  # 현재 사용자의 UserInfo 가져오기
+        is_liked = post in userinfo.like_posts.all()  # 해당 게시글이 사용자의 좋아요 목록에 있는지 확인
+
         serializer = PostSerializer(post)
-        return Response(serializer.data)
-    
+        data = serializer.data
+        data['is_liked'] = is_liked  # 좋아요 여부 정보 추가
+        return Response(data, status=status.HTTP_200_OK)
+
+    def post(self, request, code, post_id):
+        user = request.user  # 현재 로그인한 사용자
+        post = get_object_or_404(Post, id=post_id)
+
+        userinfo = user.userinfo
+        if post in userinfo.like_posts.all():
+            print('이미 좋아요 누름')
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        userinfo.like_posts.add(post)
+
+        is_liked = post in userinfo.like_posts.all()
+
+        serializer = PostSerializer(post)
+        data = serializer.data
+        data['is_liked'] = is_liked
+
+        return Response(data, status=status.HTTP_201_CREATED)
 # 앨범 
 class AlbumViewSet(ModelViewSet):
     queryset = Post.objects.all()
