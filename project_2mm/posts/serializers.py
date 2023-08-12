@@ -1,11 +1,15 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
-from .models import Post, Comment
+from .models import Post, Comment,UserInfo
 from . import models
 
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta: 
+        model= UserInfo
+        fiels='__all__'
+    
 class PostSerializer(serializers.ModelSerializer):
-    writer = serializers.SerializerMethodField()
-
+    writer = serializers.SerializerMethodField() #작성자
     class Meta:
         model = Post
         fields = '__all__'
@@ -24,9 +28,10 @@ class CommentSerializer(ModelSerializer):
         fields = [ 'id','post','comment','writer','created_at' ]
 
 class GroupPostSerializer(serializers.ModelSerializer):
+    liked = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = Post
-        fields = ['id', 'content', 'image']
+        fields = ['id', 'writer','content', 'image','liked']
 
 class GroupPlanSerializer(serializers.ModelSerializer) :
     class Meta :
