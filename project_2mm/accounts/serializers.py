@@ -13,8 +13,9 @@ class UsernameSerializer(serializers.Serializer):
         # 코드 값을 무시하고 업데이트할 필드만 validated_data에서 추출합니다.
         validated_data.pop('username', None)
         return super().update(instance, validated_data)
-    
+
 class UsersSerializer(serializers.ModelSerializer):
+    #user = serializers.ReadOnlyField(source='user.username')
     class Meta:
         model = models.UserInfo
         fields = '__all__'
@@ -23,10 +24,12 @@ class UsersSerializer(serializers.ModelSerializer):
         # 전화번호 업데이트
         if 'phone' in validated_data:
             instance.phone = validated_data['phone']
-
+        #user = instance.user
         # 비밀번호 업데이트
         if 'password' in validated_data:
             new_password = validated_data['password']
+            # user.set_password(new_password)
+            # user.save()
             instance.user.set_password(new_password)
             instance.user.save()
 

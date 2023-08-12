@@ -64,13 +64,28 @@ class LogoutView(APIView):
 
 #회원가입
 class SingupView(APIView):
+    # def get(self, request):
+    #     queryset = models.User.objects.all()
+    #     serializer = serializers.UsersSerializer(queryset, many=True)  # queryset은 여러 개의 유저를 포함할 수 있으므로 many=True 옵션 사용
+    #     return Response(serializer.data)    
+
     def post(self, request):
+        # 여기서 받은 사용자 이름으로 일단 create user 하고 나머지 정보는 patch로 수정하는 식으로 
         serializer = UsernameSerializer(data=request.data)
         if serializer.is_valid():
             username = serializer.validated_data.get('username')
+            #self.request.session['username'] = username
             user = User.objects.create_user(username=username)
             user_info = UserInfo.objects.create(user=user)
+            if user is not None :
+                print("유저 생성됐다")
+            if user_info is not None :
+                print("유저 정보 생성됐다.")
             token, created = Token.objects.get_or_create(user=user)
+        #     return Response({ 'token': token.key}, status=status.HTTP_200_OK)
+        # else: 
+        #     return Response({'넘어가는 거 막기..'}, status=status.HTTP_400_BAD_REQUEST)
+            
             return Response({'token': token.key}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -78,8 +93,14 @@ class SingupView(APIView):
     def patch(self, request, format=None):
         try:
             user_info = UserInfo.objects.get(user=request.user)
+            print('입력받은 데이터는 ')
+            print(request.data)
+
             serializer = serializers.UsersSerializer(user_info, data=request.data, partial=True)
             if serializer.is_valid():
+                #print(serializer.error)
+                # serializer.update(user_info, serializer.validated_data)  # update 메서드 호출
+                # print('업데이트 됐음')
                 serializer.save() 
                 return Response(serializer.data)
             else:
