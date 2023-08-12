@@ -60,3 +60,10 @@ class Group(models.Model):
 
     def __str__(self):
         return self.name
+
+class Plan(models.Model) :
+    group_code = models.ForeignKey('Group', on_delete=models.CASCADE, related_name='plan', null=True)
+    month = models.CharField(max_length=8, null=True)
+    date = models.CharField(max_length=8, null=True)
+    title = models.TextField(null=True)
+    memo = models.CharField(max_length=24, null=True)
