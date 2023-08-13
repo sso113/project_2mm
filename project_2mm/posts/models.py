@@ -27,7 +27,7 @@ class UserInfo(models.Model) :
     # phoneNumber 필드 : 모듈 사용함 
     # phoneNumber = UserInfo.phone.as_e164 로 값을 가져오면 되어요 
     phone = PhoneNumberField(verbose_name="전화번호", max_length=15, null=False, blank=False)
-    like_posts = models.ManyToManyField(Post)
+    like_posts = models.ManyToManyField(Post,related_name='liked_users')
     def __str__(self):
         return str(self.id)
 

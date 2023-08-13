@@ -1,6 +1,6 @@
 from rest_framework.routers import SimpleRouter, DefaultRouter
 from django.urls import path, include
-from .views import PostViewSet,CommentViewSet, GroupPostView, GroupPostDetailView
+from .views import PostViewSet,GroupPostView, GroupPostDetailView
 from . import views
 post_router = DefaultRouter()
 post_router.register('posts', PostViewSet,basename='post')
@@ -8,8 +8,7 @@ post_router.register('posts', PostViewSet,basename='post')
 album_router =  DefaultRouter()
 album_router.register('album', views.AlbumViewSet, basename='album')
 
-comment_router = DefaultRouter()
-comment_router.register('comments',CommentViewSet,basename='comment')
+
 
 urlpatterns = [
     #path('', include(post_router.urls)),
@@ -21,6 +20,9 @@ urlpatterns = [
     path('group/<uuid:group_code>/posts/', views.GroupPostView.as_view(), name='post_list'),
     path('group/<uuid:code>/posts/<int:post_id>/', views.GroupPostDetailView.as_view(), name='post_detail'),
 
+    #게시글별 댓글 
+    path('group/<uuid:group_code>/posts/<int:post_id>/comments/', views.CommentView.as_view(), name='comment-list'),
+    path('group/<uuid:group_code>/posts/<int:post_id>/comments/<int:comment_id>/', views.CommentView.as_view(), name='comment-detail'),
     # 모임별 일정 
     path('group/<uuid:group_code>/plans/', views.GroupPlanView.as_view(), name='plan_list'),
     path('group/<uuid:code>/plans/<int:plan_id>/', views.GroupPlanDetailView.as_view(), name='plan_detail'),
