@@ -26,5 +26,5 @@ urlpatterns = [
 
     # 모임별 일정 
     path('group/<uuid:group_code>/plans/', views.GroupPlanView.as_view(), name='plan_list'),
-    path('group/<str:code>/plans/<int:plan_id>/', views.GroupPlanDetailView.as_view(), name='group-plan-detail')
+    path('group/<uuid:group_code>/plans/<int:plan_id>/', views.GroupPlanDetailView.as_view(), name='group-plan-detail')
 ]
