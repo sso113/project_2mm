@@ -3,12 +3,12 @@ from rest_framework.serializers import ModelSerializer
 from .models import Post, Comment,UserInfo
 from . import models
 
-class UserInfoSerializer(serializers.ModelSerializer):
+class UserInfoSerializer(ModelSerializer):
     class Meta: 
         model= UserInfo
         fiels='__all__'
     
-class PostSerializer(serializers.ModelSerializer):
+class PostSerializer(ModelSerializer):
     writer = serializers.SerializerMethodField() #작성자
     class Meta:
         model = Post
@@ -27,13 +27,13 @@ class CommentSerializer(ModelSerializer):
         model = Comment
         fields = [ 'id','post','comment','writer','created_at' ]
 
-class GroupPostSerializer(serializers.ModelSerializer):
+class GroupPostSerializer(ModelSerializer):
     liked = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = Post
         fields = ['id', 'writer','content', 'image','liked']
 
-class GroupPlanSerializer(serializers.ModelSerializer) :
+class GroupPlanSerializer(ModelSerializer) :
     class Meta :
         model = models.Plan
         fields = ['id', 'month', 'date', 'title', 'memo']
