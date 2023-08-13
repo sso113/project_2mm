@@ -56,6 +56,7 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Group
         fields = ['name','info', 'profile', 'username', 'code']
+
     def update(self, instance, validated_data):
         # 코드 값을 무시하고 업데이트할 필드만 validated_data에서 추출하는 메소드
         validated_data.pop('code', None)

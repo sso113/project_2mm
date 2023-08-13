@@ -173,7 +173,7 @@ class AlbumViewSet(views.APIView):
             return Response(serializer.data)
         except models.Group.DoesNotExist:
             return Response({'error': '그룹 x'},status=status.HTTP_404_NOT_FOUND)
-
+    
 # 앨범 상세 페이지
 class AlbumDetailViewSet(views.APIView):
     def get(self, request, group_code, post_id):
@@ -227,10 +227,6 @@ class GroupPlanView(views.APIView):
         else:
             return Response({'error': '사용자 x'},status=status.HTTP_401_UNAUTHORIZED)
 
-    # plan delete도 나중에 필요하면 추가
-    # def delete(self, request, code, post_id):
-    #     pass
-
 #그룹 일정 상세 페이지 
 class GroupPlanDetailView(views.APIView):
     def get(self, request, code, plan_id):
@@ -241,16 +237,29 @@ class GroupPlanDetailView(views.APIView):
         except Post.DoesNotExist:
             return Response({'error': '일정 x'}, status=status.HTTP_404_NOT_FOUND)
 
-    def patch(self, request, plan_id, format=None):
-        try:
-            queryset = models.Plan.objects.get(id=plan_id)
-            serializer = serializers.GroupPlanSerializer(queryset, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except models.Plan.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    # def patch(self, request, plan_id, format=None):
+    #     try:
+    #         queryset = models.Plan.objects.get(id=plan_id)
+    #         serializer = serializers.GroupPlanSerializer(queryset, data=request.data, partial=True)
+    #         if serializer.is_valid():
+    #             serializer.save()
+    #             return Response(serializer.data)
+    #         else:
+    #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #     except models.Plan.DoesNotExist:
+    #         return Response(status=status.HTTP_404_NOT_FOUND)
+    #     except Exception as e:
+    #         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def patch(self, request, group_code, plan_id):
+        plan = models.Plan.objects.get(id=plan_id)  # Plan 모델로 변경
+        serializer = serializers.GroupPlanSerializer(plan, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, group_code, plan_id):    
+        plan = models.Plan.objects.get(id=plan_id)  # Plan 모델로 변경
+        plan.delete()
+        return Response({'성공': '일정 삭제 완료'}, status=status.HTTP_204_NO_CONTENT)
