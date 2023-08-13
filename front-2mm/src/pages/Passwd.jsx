@@ -60,7 +60,6 @@ const NextBtn = styled.div`
 
 const Passwd = () => {
   const navigate = useNavigate();
-
   // const gotoHome = () => {
   //   navigate("/Membership4");
   // };
@@ -69,16 +68,18 @@ const Passwd = () => {
   const [password, setPassword] = useState("");
   const location = useLocation();
   const { phnumber } = location.state; // 이전 페이지에서 전달된 사용자명
+  console.log(phnumber);
+  console.log(password);
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/login/", {
-        phnumber,
-        password,
+      const response = await axios.post(`http://127.0.0.1:8000/api/login/`, {
+        phone: phnumber,
+        password: password,
       });
-      const token = response.data.token;
-      localStorage.setItem("token", token);
-      navigate("/Membership4"); // 페이지 이동
+      const token = response.data.token; // 토큰 받기
+      localStorage.setItem("token", token); // 토큰 저장
+      navigate("/Membership4"); // 로그인하면 페이지 이동
     } catch (error) {
       console.error("로그인 실패:", error);
     }

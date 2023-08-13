@@ -1,5 +1,7 @@
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import axios from "axios";
 
 const Container = styled.div`
   position: relative;
@@ -35,7 +37,7 @@ const SubTitle = styled.div`
   left: 25px;
 `;
 
-const InputName = styled.input`
+const InputPasswd = styled.input`
   position: relative;
   width: 300px;
   height: 50px;
@@ -60,8 +62,34 @@ const NextBtn = styled.div`
 const Membership3 = () => {
   const navigate = useNavigate();
 
-  const onClickMembership4 = () => {
-    navigate("/Login");
+  const [password, setPassword] = useState("");
+
+  console.log(localStorage.getItem("token"));
+
+  const onSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.patch(
+        "http://127.0.0.1:8000/update-password/",
+        { password: password },
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+
+      console.log("Data:", response.data);
+
+      navigate("/Login");
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  const handlePasswdChange = (e) => {
+    setPassword(e.target.value);
   };
 
   return (
@@ -79,8 +107,12 @@ const Membership3 = () => {
           alt="subtitle"
         />
       </SubTitle>
-      <InputName placeholder="영어,숫자 포함 8자리를 입력하세요."></InputName>
-      <NextBtn onClick={onClickMembership4}>
+      <InputPasswd
+        placeholder="영어,숫자 포함 8자리를 입력하세요."
+        value={password}
+        onChange={handlePasswdChange}
+      />
+      <NextBtn onClick={onSubmit}>
         <img src={`${process.env.PUBLIC_URL}/images/next_btn.svg`} alt="btn" />
       </NextBtn>
     </Container>
