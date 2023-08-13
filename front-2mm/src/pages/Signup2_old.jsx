@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import axios from "axios";
 
 const Container = styled.div`
   position: relative;
@@ -111,11 +114,15 @@ const OneImage = styled.img`
 const One_Name = styled.div`
   position: relative;
   width: 36px;
-  height: 36px;
+  height: 38px;
   bottom: 510px;
   left: 100px;
-  flex-shrink: 0;
-  border-radius: 36px;
+  color: #000;
+  font-family: Inter;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
 `;
 
 const NextBtn = styled.div`
@@ -135,14 +142,22 @@ const Signup2_old = () => {
     navigate("/signup3_old");
   };
 
-  const [selectedImage, setSelectedImage] = useState(null);
+  const location = useLocation();
+  // 이전 페이지에서 전달된 초대코드
+  const { invitecode } = location.state;
+  console.log(invitecode);
+
+  const [group, setGroup] = useState(null);
+  const [postLoading, setPostLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get(`http://127.0.0.1:8000/group/${invitecode}`).then((response) => {
+      setGroup(response.data);
+      setPostLoading(false);
+    });
+  }, []);
+
   const groupdetail = ""; // 여기에서 groupdetail을 적절한 값으로 설정해주세요.
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0]; // 선택한 이미지 파일 가져오기
-    setSelectedImage(file); // 선택한 이미지 상태 업데이트
-  };
-
   const groupname = ""; // 여기에서 groupname을 적절한 값으로 설정해주세요.
 
   return (
@@ -164,24 +179,15 @@ const Signup2_old = () => {
         <ImageUpload>
           <img src={`${process.env.PUBLIC_URL}/images/image_upload.svg`} />
         </ImageUpload>
-        <GroupName placeholder="화목한 우리 가족">
-          {groupname}화목한 우리 가족
-        </GroupName>
-        <GroupDetail placeholder="세상에서 제일 멋진 우리 집!">
-          {groupdetail}세상에서 제일 멋진 우리 집
-        </GroupDetail>
+        <GroupName>{group && group.name}화목한 우리 가족</GroupName>
+        <GroupDetail>{groupdetail}세상에서 제일 멋진 우리 집</GroupDetail>
         <OneContainer>
           <OneImage
             src={`${process.env.PUBLIC_URL}/images/one.svg`}
             alt="One"
           />
         </OneContainer>
-        <One_Name>
-          <img
-            src={`${process.env.PUBLIC_URL}/images/one_name.svg`}
-            alt="One Name"
-          />
-        </One_Name>
+        <One_Name>김서진</One_Name>
       </WhiteBox>
       <NextBtn onClick={handleNextClick}>
         <img src={`${process.env.PUBLIC_URL}/images/nextbtn.svg`} alt="Next" />
