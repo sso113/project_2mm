@@ -7,7 +7,7 @@ class UserInfoSerializer(ModelSerializer):
     class Meta: 
         model= UserInfo
         fiels='__all__'
-    
+
 class PostSerializer(ModelSerializer):
     writer = serializers.SerializerMethodField() #작성자
     class Meta:
