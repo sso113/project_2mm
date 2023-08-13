@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Container = styled.div`
   position: relative;
@@ -73,37 +74,33 @@ const NextBtn = styled.button`
 `;
 
 const Signup5_new = () => {
-  const location = useLocation();
-  const [groupname, setGroupname] = useState("");
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [group, setGroup] = useState(null);
 
   useEffect(() => {
-    const groupnameFromLocation = location.state
-      ? location.state.group_name
-      : "";
-    if (groupnameFromLocation) {
-      setGroupname(groupnameFromLocation);
-    }
-  }, [location.state]);
+    const code = localStorage.getItem("code");
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    setSelectedImage(file);
-  };
+    const fetchData = async () => {
+      try {
+        // API 호출
+        const response = await axios.get(
+          `http://127.0.0.1:8000/group/${code}/`
+        );
+        setGroup(response.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData(); // fetchData 함수 호출 (데이터를 서버에서 가져옴)
+  }, []); // invitecode가 변경될 때마다 데이터를 다시 불러오도록
 
   const navigate = useNavigate();
-
-  const handleBackClick = () => {
-    navigate("/signup4_new");
-  };
-
   const handleClick = () => {
     navigate("/Home");
   };
 
   return (
     <Container>
-      <Back onClick={handleBackClick}>
+      <Back>
         <img src={`${process.env.PUBLIC_URL}/images/backbtn.svg`} alt="Back" />
       </Back>
       <SubTitle>
@@ -118,21 +115,11 @@ const Signup5_new = () => {
           alt="WhiteBox"
         />
         <ImageUpload>
-          <label htmlFor="imageUploadInput">
-            <img
-              src={`${process.env.PUBLIC_URL}/images/image_upload.svg`}
-              alt="ImageUpload"
-            />
-          </label>
-          <input
-            type="file"
-            id="imageUploadInput"
-            accept="image/*"
-            onChange={handleImageUpload}
-            style={{ display: "none" }}
-          />
+          {group && group.profile ? (
+            <img src={group.profile} alt="ImageUpload" />
+          ) : null}
         </ImageUpload>
-        <GroupName>{groupname}</GroupName>
+        {group ? <GroupName>{group.name}</GroupName> : null}
       </Whitebox>
       <NextBtn onClick={handleClick}>
         <img src={`${process.env.PUBLIC_URL}/images/startbtn.svg`} alt="Next" />

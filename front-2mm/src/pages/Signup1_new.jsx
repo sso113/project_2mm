@@ -66,8 +66,8 @@ const Signup1_new = () => {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await axios.patch(
-        "http://127.0.0.1:8000/update-password/",
+      const response = await axios.post(
+        "http://127.0.0.1:8000/group/",
         { name: name },
         {
           headers: {
@@ -78,13 +78,18 @@ const Signup1_new = () => {
 
       console.log("Data:", response.data);
 
-      navigate("/signup2_new");
+      const code = response.data.code;
+      localStorage.setItem("code", code);
+
+      console.log(code);
+
+      navigate("/Signup2_new");
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
 
-  const handlePasswdChange = (e) => {
+  const handlePhoneChange = (e) => {
     setName(e.target.value);
   };
 
@@ -99,7 +104,7 @@ const Signup1_new = () => {
       <InputGroupname
         placeholder="예)화목한 우리 가족"
         value={name}
-        onChange={handlePasswdChange}
+        onChange={handlePhoneChange}
       />
       <NextBtn onClick={onSubmit}>
         {" "}
