@@ -67,12 +67,11 @@ class GroupPostView(views.APIView):
         else:
             return Response({'error': '사용자 x'},status=status.HTTP_401_UNAUTHORIZED)
 
-    
 #그룹의 게시글 상세 페이지 
 class GroupPostDetailView(views.APIView):
     def get(self, request, code, post_id):
         try:
-            post = Post.objects.get(group_code__code=code, id=post_id)
+            post = Post.objects.get(group_code_code=code, id=post_id)
             serializer = serializers.GroupPostSerializer(post)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Post.DoesNotExist:
@@ -162,21 +161,42 @@ class CommentView(views.APIView):
             comment.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-           return Response({'error': '작성자랑 유저랑 불일치'}, status=status.HTTP_403_FORBIDDEN)
-        
-# 앨범 
-class AlbumViewSet(ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = serializers.AlbumSerializer
+            return Response({'error': '작성자랑 유저랑 불일치'}, status=status.HTTP_403_FORBIDDEN)
 
-# 앨범 내 다운로드 기능 
-class DownloadView(viewsets.ViewSet):
-    def download(self, request, post_id): 
-        post = get_object_or_404(models.Post, id=post_id)
+# 그룹별 앨범 사진목록 
+class AlbumViewSet(views.APIView):
+    def get(self, request, group_code):
+        try:
+            group = models.Group.objects.get(code=group_code)
+            posts = Post.objects.filter(group_code=group)
+            serializer = serializers.AlbumSerializer(posts, many=True)
+            return Response(serializer.data)
+        except models.Group.DoesNotExist:
+            return Response({'error': '그룹 x'},status=status.HTTP_404_NOT_FOUND)
+
+# 앨범 상세 페이지
+class AlbumDetailViewSet(views.APIView):
+    def get(self, request, group_code, post_id):
+        try:
+            post = get_object_or_404(models.Post, id=post_id)
+            serializer = serializers.AlbumSerializer(post)
+            return Response(serializer.data)
+        except models.Group.DoesNotExist:
+            return Response({'error': '그룹 x'},status=status.HTTP_404_NOT_FOUND)
+
+# 앨범 사진 다운로드 
+class AlbumDownloadView(viewsets.ViewSet):
+    def download(self, request, group_code, post_id): 
+        post = get_object_or_404(models.Post, id=post_id, group_code=group_code)
         image = post.image
         path = image.path
-        response = FileResponse(open(path, 'rb'))
-        return response
+
+        try:
+            response = FileResponse(open(path, 'rb'))
+            response['Content-Disposition'] = f'attachment; filename="{image.name}"'
+            return response
+        except FileNotFoundError:
+            return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def list(self, request):  
         return Response({"detail": "This endpoint supports GET only."})
@@ -211,7 +231,7 @@ class GroupPlanView(views.APIView):
     # def delete(self, request, code, post_id):
     #     pass
 
-#그룹의 게시글 상세 페이지 
+#그룹 일정 상세 페이지 
 class GroupPlanDetailView(views.APIView):
     def get(self, request, code, plan_id):
         try:

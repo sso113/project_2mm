@@ -61,8 +61,15 @@ class GroupSerializer(serializers.ModelSerializer):
         validated_data.pop('code', None)
         return super().update(instance, validated_data)
 
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.UserInfo
+        fields = ['user', 'profile']
+
 class GroupDetailSerializer(serializers.ModelSerializer):
+    user = UserInfoSerializer(many=True, source='user.all')  # Many-to-Many 관계에서 사용자 정보를 가져옵니다.
+
     class Meta:
         model = models.Group
         fields = '__all__'
-        read_only_fields = ['code', 'user', 'name']
+        read_only_fields = ['code', 'name', 'profile']
