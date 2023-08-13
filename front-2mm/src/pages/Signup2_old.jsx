@@ -133,9 +133,9 @@ const NameText = styled.div`
 const Signup2_old = () => {
   const navigate = useNavigate();
 
-  const handleBackClick = () => {
-    navigate("/signup1_old");
-  };
+  // const handleBackClick = () => {
+  //   navigate("/signup1_old");
+  // };
 
   const handleNextClick = () => {
     navigate("/signup3_old");
@@ -151,16 +151,39 @@ const Signup2_old = () => {
   const [postLoading, setPostLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`http://127.0.0.1:8000/group/${invitecode}`).then((response) => {
-      setGroup(response.data);
-      setUsers(response.data.user); // users배열에 저장 추가
-      setPostLoading(false);
-    });
-  }, []);
+    const fetchData = async () => {
+      setPostLoading(true);
+      try {
+        // API 호출
+        const response = await axios.get(
+          `http://127.0.0.1:8000/group/${invitecode}/`
+        );
+        setGroup(response.data);
+        setUsers(response.data.user); // users배열에 저장 추가
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+      setPostLoading(false); // 로딩 상태 변경
+    };
+    fetchData(); // fetchData 함수 호출 (데이터를 서버에서 가져옴)
+  }, [invitecode]); // invitecode가 변경될 때마다 데이터를 다시 불러오도록
+
+  if (postLoading) {
+    return <div>대기중...</div>;
+  }
+
+  // // 화면 로드할 때 불러와지게
+  // useEffect(() => {
+  //   axios.get(`http://127.0.0.1:8000/group/${invitecode}/`).then((response) => {
+  //     setGroup(response.data);
+  //     setUsers(response.data.user); // users배열에 저장 추가
+  //     setPostLoading(false);
+  //   });
+  // }, []);
 
   return (
     <Container>
-      <Back onClick={handleBackClick}>
+      <Back>
         <img src={`${process.env.PUBLIC_URL}/images/backbtn.svg`} alt="Back" />
       </Back>
       <SubTitle>
@@ -178,8 +201,8 @@ const Signup2_old = () => {
         <ImageUpload>
           <img src={group && group.profile} />
         </ImageUpload>
-        <GroupName>{group && group.name} 하이</GroupName>
-        <GroupDetail>{group && group.info} 하하이</GroupDetail>
+        <GroupName>{group && group.name}</GroupName>
+        <GroupDetail>{group && group.info}</GroupDetail>
         <BoxZone>
           {/* 사용자 목록 출력 */}
           {users.map((userObj) => (
