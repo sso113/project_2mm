@@ -61,6 +61,10 @@ class Group(models.Model):
     def __str__(self):
         return self.name
 
+    @staticmethod
+    def get_groups_for_user(user):
+        return Group.objects.filter(user__user=user)
+
 class Plan(models.Model) :
     group_code = models.ForeignKey('Group', on_delete=models.CASCADE, related_name='plan', null=True)
     month = models.CharField(max_length=8, null=True)
