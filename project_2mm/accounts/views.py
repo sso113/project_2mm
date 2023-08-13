@@ -116,11 +116,10 @@ class PasswordView(APIView):
             user.save()
             return Response({'message': '비밀번호가 업데이트되었습니다.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class GroupListCreateView(generics.CreateAPIView):
     queryset = models.Group.objects.all()
     serializer_class = serializers.GroupCreateSerializer
-    
+
     def perform_create(self, serializer):
         user = self.request.user
         userinfo = user.userinfo
@@ -131,6 +130,12 @@ class GroupListCreateView(generics.CreateAPIView):
         
         group.user.add(userinfo)
 
+    def get(self, request):
+        user = self.request.user
+        groups = models.Group.get_groups_for_user(user)
+
+        serializer = serializers.GroupDetailSerializer(groups, many=True)
+        return Response(serializer.data)
 class GroupDetailView(APIView):
     def get_object(self, code):
         try:

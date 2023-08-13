@@ -49,22 +49,6 @@ const ImageUpload = styled.div`
   border-radius: 16px;
 `;
 
-const InputGroupname = styled.input`
-  position: relative;
-  width: 300px;
-  height: 50px;
-  left: 22px;
-  top: 55px;
-  border-radius: 7px;
-  border: 1.5px solid #0085ff;
-  font-size: 20px;
-  padding-left: 15px;
-
-  ::placeholder {
-    color: #7c7c7c;
-  }
-`;
-
 const GroupName = styled.div`
   position: relative;
   width: 200px;
@@ -95,40 +79,55 @@ const GroupDetail = styled.div`
   color: #181818;
 `;
 
-const OneContainer = styled.div`
+const NextBtn = styled.div`
   position: relative;
-  width: 50px;
-  height: 50px;
-  bottom: 480px;
-  left: 30px;
-  border-radius: 25px; /* 반지름을 width와 height의 절반으로 설정 */
+  bottom: 440px;
+  left: 22px;
+`;
+const BoxZone = styled.div`
+  position: relative;
+  bottom: 490px;
+  width: 300px;
+  height: 170px;
+  margin: auto;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  &::-webkit-scrollbar {
+    /* WebKit 브라우저의 스크롤바를 숨김 */
+    width: 0;
+    background: transparent;
+  }
+`;
+const Box = styled.div`
+  position: relative;
+  margin-bottom: 10px;
+  width: 340px;
+  height: 45px;
+  display: flex;
+  flex-direction: vertical;
+  align-items: center;
+  justify-content: left;
+`;
+
+const ProfileImg = styled.div`
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px; /* 반지름을 width와 height의 절반으로 설정 */
   overflow: hidden;
 `;
-
-const OneImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-`;
-
-const One_Name = styled.div`
+const NameText = styled.div`
   position: relative;
-  width: 36px;
-  height: 38px;
-  bottom: 510px;
-  left: 100px;
+  display: inline-block;
+  margin-left: 10px;
   color: #000;
   font-family: Inter;
-  font-size: 12px;
+  font-size: 14px;
   font-style: normal;
   font-weight: 700;
   line-height: normal;
-`;
-
-const NextBtn = styled.div`
-  position: relative;
-  bottom: 350px;
-  left: 22px;
 `;
 
 const Signup2_old = () => {
@@ -148,17 +147,16 @@ const Signup2_old = () => {
   console.log(invitecode);
 
   const [group, setGroup] = useState(null);
+  const [users, setUsers] = useState([]); // 추가
   const [postLoading, setPostLoading] = useState(true);
 
   useEffect(() => {
     axios.get(`http://127.0.0.1:8000/group/${invitecode}`).then((response) => {
       setGroup(response.data);
+      setUsers(response.data.user); // users배열에 저장 추가
       setPostLoading(false);
     });
   }, []);
-
-  const groupdetail = ""; // 여기에서 groupdetail을 적절한 값으로 설정해주세요.
-  const groupname = ""; // 여기에서 groupname을 적절한 값으로 설정해주세요.
 
   return (
     <Container>
@@ -176,18 +174,27 @@ const Signup2_old = () => {
           src={`${process.env.PUBLIC_URL}/images/whitebox2.svg`}
           alt="WhiteBox"
         />
+        {/* 여기에 모임 이미지 떠야 함 */}
         <ImageUpload>
-          <img src={`${process.env.PUBLIC_URL}/images/image_upload.svg`} />
+          <img src={group && group.profile} />
         </ImageUpload>
-        <GroupName>{group && group.name}화목한 우리 가족</GroupName>
-        <GroupDetail>{groupdetail}세상에서 제일 멋진 우리 집</GroupDetail>
-        <OneContainer>
-          <OneImage
-            src={`${process.env.PUBLIC_URL}/images/one.svg`}
-            alt="One"
-          />
-        </OneContainer>
-        <One_Name>김서진</One_Name>
+        <GroupName>{group && group.name} 하이</GroupName>
+        <GroupDetail>{group && group.info} 하하이</GroupDetail>
+        <BoxZone>
+          {/* 사용자 목록 출력 */}
+          {users.map((userObj) => (
+            <Box key={userObj.user}>
+              <ProfileImg>
+                <img
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  src={userObj.profile}
+                  alt={`Profile of ${userObj.user}`}
+                />
+              </ProfileImg>
+              <NameText>{userObj.user}</NameText>
+            </Box>
+          ))}
+        </BoxZone>
       </WhiteBox>
       <NextBtn onClick={handleNextClick}>
         <img src={`${process.env.PUBLIC_URL}/images/nextbtn.svg`} alt="Next" />
