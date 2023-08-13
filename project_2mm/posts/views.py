@@ -4,13 +4,13 @@ from rest_framework.response import Response
 from rest_framework import status,viewsets
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import  IsAuthenticated
-from .models import Post,Comment
-from .serializers import PostSerializer,CommentSerializer
+from .models import Post,Comment, Plan, Group
+from .serializers import PostSerializer,CommentSerializer, GroupPlanSerializer
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from . import models
 from . import serializers
-
+from rest_framework.views import APIView
 # 특정 그룹 게시글 작성 
 class PostViewSet(viewsets.ModelViewSet):
     #post_list
@@ -228,38 +228,40 @@ class GroupPlanView(views.APIView):
             return Response({'error': '사용자 x'},status=status.HTTP_401_UNAUTHORIZED)
 
 #그룹 일정 상세 페이지 
-class GroupPlanDetailView(views.APIView):
-    def get(self, request, code, plan_id):
+class GroupPlanDetailView(APIView):
+    def get_object(self, id, code):
         try:
-            plan = Post.objects.get(group_code__code=code, id=plan_id)
-            serializer = serializers.GroupPlanSerializer(plan)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Post.DoesNotExist:
+            return Plan.objects.get(id=id, group_code__code=code)
+        except Plan.DoesNotExist:
+            return None
+    
+    def get(self, request, code, id):
+        plan = self.get_object(id=id, code=code)
+        if plan is None:
             return Response({'error': '일정 x'}, status=status.HTTP_404_NOT_FOUND)
-
-    # def patch(self, request, plan_id, format=None):
-    #     try:
-    #         queryset = models.Plan.objects.get(id=plan_id)
-    #         serializer = serializers.GroupPlanSerializer(queryset, data=request.data, partial=True)
-    #         if serializer.is_valid():
-    #             serializer.save()
-    #             return Response(serializer.data)
-    #         else:
-    #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #     except models.Plan.DoesNotExist:
-    #         return Response(status=status.HTTP_404_NOT_FOUND)
-    #     except Exception as e:
-    #         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-    def patch(self, request, group_code, plan_id):
-        plan = models.Plan.objects.get(id=plan_id)  # Plan 모델로 변경
-        serializer = serializers.GroupPlanSerializer(plan, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = GroupPlanSerializer(plan)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def delete(self, request, group_code, plan_id):    
-        plan = models.Plan.objects.get(id=plan_id)  # Plan 모델로 변경
+    def patch(self, request, code, id, format=None):
+        try:
+            plan = self.get_object(id=id, code=code)
+            if plan is None:
+                return Response({'실패': '해당 모임 없음'}, status=status.HTTP_404_NOT_FOUND)
+            
+            serializer = GroupPlanSerializer(plan, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'실패': '해당 모임 없음'}, serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'실패': '모임생성안됨'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, code, id, format=None):
+        plan = self.get_object(id=id, code=code)
+        if plan is None:
+            return Response({'실패': '해당 모임 없음'}, status=status.HTTP_404_NOT_FOUND)
+        
         plan.delete()
-        return Response({'성공': '일정 삭제 완료'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'성공': '삭제완료'}, status=status.HTTP_204_NO_CONTENT)

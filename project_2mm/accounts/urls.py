@@ -14,8 +14,8 @@ urlpatterns = [
 
     # 모임
     path('group/', views.GroupListCreateView.as_view(), name='group-list-create'),
-    path('group/<uuid:code>/', views.GroupDetailView.as_view(http_method_names=['get', 'patch']), name='group-detail'),
+    path('group/<uuid:code>/', views.GroupDetailView.as_view(http_method_names=['get', 'patch', 'delete']), name='group-detail'),
 
-    # 화상 공유 
-    #path('current-url/', views.CurrentPageURL.as_view(), name='current-url'),
+    # 마이페이지 
+    path('mypage/', views.MypageView.as_view(), name='mypage'),
 ]
