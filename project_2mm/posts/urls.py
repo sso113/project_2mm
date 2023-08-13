@@ -1,14 +1,5 @@
-from rest_framework.routers import SimpleRouter, DefaultRouter
-from django.urls import path, include
-from .views import PostViewSet,GroupPostView, GroupPostDetailView
+from django.urls import path
 from . import views
-post_router = DefaultRouter()
-post_router.register('posts', PostViewSet,basename='post')
-
-album_router =  DefaultRouter()
-album_router.register('album', views.AlbumViewSet, basename='album')
-
-
 
 urlpatterns = [
     # 앨범

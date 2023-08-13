@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
-from .models import Post, Comment,UserInfo
+from .models import Post, Comment, UserInfo, Plan
 from . import models
 
 class UserInfoSerializer(ModelSerializer):
@@ -35,5 +35,5 @@ class GroupPostSerializer(ModelSerializer):
 
 class GroupPlanSerializer(ModelSerializer) :
     class Meta :
-        model = models.Plan
+        model = Plan
         fields = ['id', 'month', 'date', 'title', 'memo']
