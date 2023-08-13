@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import axios from "axios";
 
 const Container = styled.div`
   position: relative;
@@ -34,7 +35,7 @@ const SubTitle = styled.div`
   left: 25px;
 `;
 
-const InputName = styled.input`
+const InputNumber = styled.input`
   position: relative;
   width: 300px;
   height: 50px;
@@ -56,10 +57,11 @@ const NextBtn = styled.div`
 `;
 
 const Login = () => {
+  const [phnumber, setPhnumber] = useState("");
   const navigate = useNavigate();
 
   const gotoPasswd = () => {
-    navigate("/Passwd");
+    navigate("/Passwd", { state: { phnumber } }); // 다음페이지로 입력한 값 전달
   };
 
   return (
@@ -71,7 +73,13 @@ const Login = () => {
       <SubTitle>
         <img src={`${process.env.PUBLIC_URL}/images/numbertitle.svg`} />
       </SubTitle>
-      <InputName placeholder="010-1234-5678"></InputName>
+      {/* 인풋 박스 */}
+      <InputNumber
+        type="text"
+        placeholder="010-1234-5678"
+        value={phnumber}
+        onChange={(e) => setPhnumber(e.target.value)}
+      ></InputNumber>
       <NextBtn onClick={gotoPasswd}>
         <img src={`${process.env.PUBLIC_URL}/images/nextbtn.svg`} />
       </NextBtn>

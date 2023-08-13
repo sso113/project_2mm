@@ -1,5 +1,7 @@
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import axios from "axios";
 
 const Container = styled.div`
   position: relative;
@@ -35,7 +37,7 @@ const SubTitle = styled.div`
   left: 25px;
 `;
 
-const InputName = styled.input`
+const InputPhone = styled.input`
   position: relative;
   width: 300px;
   height: 50px;
@@ -59,9 +61,34 @@ const NextBtn = styled.div`
 
 const Membership2 = () => {
   const navigate = useNavigate();
-  //Membership3로 이동
-  const onClickMembership3 = () => {
-    navigate("/Membership3");
+  const [phone, setPhone] = useState("");
+
+  console.log(localStorage.getItem("token"));
+
+  const onSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.patch(
+        "http://127.0.0.1:8000/signup/",
+        { phone: phone },
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+
+      console.log("Data:", response.data);
+
+      navigate("/Membership3");
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  const handlePhoneChange = (e) => {
+    setPhone(e.target.value);
   };
 
   return (
@@ -79,8 +106,12 @@ const Membership2 = () => {
           alt="subtitle"
         />
       </SubTitle>
-      <InputName placeholder="010-1234-5678"></InputName>
-      <NextBtn onClick={onClickMembership3}>
+      <InputPhone
+        placeholder="+8210뒤에 8자리 숫자 입력해주세요."
+        value={phone}
+        onChange={handlePhoneChange}
+      />
+      <NextBtn onClick={onSubmit}>
         <img src={`${process.env.PUBLIC_URL}/images/next_btn.svg`} alt="btn" />
       </NextBtn>
     </Container>

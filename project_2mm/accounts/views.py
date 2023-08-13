@@ -117,12 +117,20 @@ class PasswordView(APIView):
             return Response({'message': '비밀번호가 업데이트되었습니다.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# group 개별 코드 발급 위한 viewset
-class GroupListCreateView(generics.ListCreateAPIView):
+class GroupListCreateView(generics.CreateAPIView):
     queryset = models.Group.objects.all()
-    serializer_class = serializers.GroupSerializer 
+    serializer_class = serializers.GroupCreateSerializer
+    
+    def perform_create(self, serializer):
+        user = self.request.user
+        userinfo = user.userinfo
+        
+        group = serializer.save()
+        group.code = uuid.uuid4()
+        group.save()
+        
+        group.user.add(userinfo)
 
-# group 정보 부분 수정위한 viewset
 class GroupDetailView(APIView):
     def get_object(self, code):
         try:
@@ -131,30 +139,12 @@ class GroupDetailView(APIView):
             return None
 
     def get(self, request, code):
-        queryset = self.get_object(code)
-        if queryset is None:
+        group = self.get_object(code)
+        if group is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        serializer = serializers.GroupSerializer(queryset)
         
-        # 로그인한 사용자 가져오기 
-        group = models.Group.objects.get(user=request.code)
-        user = get_object_or_404(models.UserInfo, user=request.user)
-        for user in group.user :
-            if group.user.code != group.code:
-                group.user.add(user)
+        serializer = serializers.GroupDetailSerializer(group)
         return Response(serializer.data)
-    
-    # put은 나중에 삭제해도 됨 
-    def put(self, request, code):
-        queryset = self.get_object(code)
-        if queryset is None:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        serializer = serializers.GroupSerializer(queryset, data=request.data, partial=False)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
     def patch(self, request, code, format=None):
         try:
@@ -162,9 +152,23 @@ class GroupDetailView(APIView):
             serializer = serializers.GroupSerializer(queryset, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
+                return Response(serializer.data)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except models.Group.DoesNotExist:
-            return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+            return Response(status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, code, format=None):
+        group = self.get_object(code)
+        if group is None:
+            return Response({'실패': '해당 모임 없음'},status=status.HTTP_404_NOT_FOUND)
+        group.delete()
+        return Response({'성공': '삭제완료'}, status=status.HTTP_204_NO_CONTENT)
+
+# 화상 공유시 url 발급 
+class CurrentPageURL(APIView):
+    def get(self, request):
+        current_url = request.build_absolute_uri()
+        return Response({'current_url': current_url})

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Container = styled.div`
   position: relative;
@@ -57,12 +58,35 @@ const NextBtn = styled.button`
 
 const Signup1_new = () => {
   const navigate = useNavigate(); // useNavigate 초기화
+  const [name, setName] = useState("");
 
-  const handleNextClick = () => {
-    navigate("/signup2_new"); // 그룹 이름을 다음 페이지로 전달
+  console.log(localStorage.getItem("token"));
+
+  const onSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.patch(
+        "http://127.0.0.1:8000/update-password/",
+        { name: name },
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+
+      console.log("Data:", response.data);
+
+      navigate("/signup2_new");
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
   };
 
-  const [groupname, setGroupname] = useState(""); // 그룹 이름 상태 추가
+  const handlePasswdChange = (e) => {
+    setName(e.target.value);
+  };
 
   return (
     <Container>
@@ -74,12 +98,11 @@ const Signup1_new = () => {
       </SubTitle>
       <InputGroupname
         placeholder="예)화목한 우리 가족"
-        value={groupname} // 입력 값과 그룹 이름 바인딩
-        onChange={(e) => setGroupname(e.target.value)} // 입력 값 변경 시 그룹 이름 업데이트
-      ></InputGroupname>
-      <NextBtn onClick={handleNextClick}>
+        value={name}
+        onChange={handlePasswdChange}
+      />
+      <NextBtn onClick={onSubmit}>
         {" "}
-        {/* Call handleNextClick */}
         <img src={`${process.env.PUBLIC_URL}/images/nextbtn.svg`} />
       </NextBtn>
     </Container>
