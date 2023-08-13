@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import axios from "axios";
 
 const Container = styled.div`
   position: relative;
@@ -62,32 +62,49 @@ const NextBtn = styled.button`
 
 const Signup2_new = () => {
   const navigate = useNavigate();
-
-  const handleBackClick = () => {
-    navigate("/signup1_new");
-  };
-
-  const handleNextClick = () => {
-    navigate("/signup3_new");
-  };
-
   const [selectedImage, setSelectedImage] = useState(null);
 
+  const onSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const code = localStorage.getItem("code");
+
+      const formData = new FormData();
+      if (selectedImage) {
+        formData.append("profile", selectedImage); // 이미지 파일을 FormData에 추가
+      }
+
+      const response = await axios.patch(
+        `http://127.0.0.1:8000/group/${code}/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Data:", response.data);
+
+      navigate("/Signup3_new");
+    } catch (error) {
+      console.error("Error creating new post:", error);
+    }
+  };
+
   const handleImageUpload = (e) => {
-    const file = e.target.files[0]; // 선택한 이미지 파일 가져오기
-    setSelectedImage(file); // 선택한 이미지 상태 업데이트
+    const file = e.target.files[0];
+    setSelectedImage(file);
   };
 
   return (
     <Container>
-      <Back onClick={handleBackClick}>
-        <img src={`${process.env.PUBLIC_URL}/images/backbtn.svg`} alt="Back" />
-      </Back>
+      <Back>&nbsp;</Back>
       <SubTitle>
         <img src={`${process.env.PUBLIC_URL}/images/subtitle_groupimage.svg`} />
       </SubTitle>
       <ImageUpload>
-        {/* 선택한 이미지가 있을 경우에만 이미지 보여주기 */}
         {selectedImage ? (
           <ImageUploadImage
             src={URL.createObjectURL(selectedImage)}
@@ -106,9 +123,7 @@ const Signup2_new = () => {
           style={{ display: "none" }}
         ></input>
       </ImageUpload>
-      <NextBtn onClick={handleNextClick}>
-        {" "}
-        {/* Call handleNextClick */}
+      <NextBtn onClick={onSubmit}>
         <img src={`${process.env.PUBLIC_URL}/images/nextbtn.svg`} />
       </NextBtn>
     </Container>

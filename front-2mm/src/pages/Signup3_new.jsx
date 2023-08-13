@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Container = styled.div`
   position: relative;
@@ -60,30 +61,59 @@ const NextBtn = styled.button`
 
 const Signup3_new = () => {
   const navigate = useNavigate();
+  const [info, setInfo] = useState("");
 
-  const handleBackClick = () => {
-    navigate("/signup2_new");
+  console.log(localStorage.getItem("token"));
+  console.log(localStorage.getItem("code"));
+
+  const onSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const code = localStorage.getItem("code"); // Make sure you have the correct code here
+
+      const formData = new FormData();
+      if (info) {
+        formData.append("info", info);
+      }
+
+      const response = await axios.patch(
+        `http://127.0.0.1:8000/group/${code}/`, // Use the correct URL with the code parameter
+        formData,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Data:", response.data);
+
+      navigate("/Signup4_new");
+    } catch (error) {
+      console.error("Error creating new post:", error);
+    }
   };
 
-  const groupdetail = "여기에 그룹 설명을 입력하세요.";
-
-  const handleNextClick = () => {
-    navigate("/signup4_new", { state: { groupdetail } }); // groupdetail을 Signup4_new 페이지로 전달
+  const handleInfoChange = (e) => {
+    setInfo(e.target.value);
   };
 
   return (
     <Container>
-      <Back onClick={handleBackClick}>
-        <img src={`${process.env.PUBLIC_URL}/images/backbtn.svg`} alt="Back" />
-      </Back>
+      <Back>&nbsp;</Back>
       <SubTitle>
         <img
           src={`${process.env.PUBLIC_URL}/images/subtitle_detail.svg`}
           alt="SubTitle"
         />
       </SubTitle>
-      <InputDetail placeholder="예)어쩌고저쩌고"></InputDetail>
-      <NextBtn onClick={handleNextClick}>
+      <InputDetail
+        placeholder="예)가족에 대한 간단한 설명"
+        value={info}
+        onChange={handleInfoChange}
+      />
+      <NextBtn onClick={onSubmit}>
         <img src={`${process.env.PUBLIC_URL}/images/nextbtn.svg`} alt="Next" />
       </NextBtn>
     </Container>

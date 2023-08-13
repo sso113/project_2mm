@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Container = styled.div`
   position: relative;
@@ -38,16 +39,17 @@ const Detail = styled.div`
   left: 25px;
 `;
 
-const InputGroupcode = styled.input`
+const InputGroupcode = styled.div`
   position: relative;
   width: 300px;
-  height: 50px;
+  height: 35px;
   left: 22px;
   top: 70px;
   border-radius: 7px;
   border: 1.5px solid #0085ff;
-  font-size: 20px;
+  font-size: 16px;
   padding-left: 15px;
+  padding-top: 13px;
 
   ::placeholder {
     color: #7c7c7c;
@@ -71,25 +73,19 @@ const NextBtn = styled.button`
 const Signup4_new = () => {
   const navigate = useNavigate();
 
-  const handleBackClick = () => {
-    navigate("/signup3_new"); // Go back to the previous page
-  };
-
   const handleNextClick = () => {
     navigate("/signup5_new"); // Use navigate to transition to another page
   };
   return (
     <Container>
-      <Back onClick={handleBackClick}>
-        <img src={`${process.env.PUBLIC_URL}/images/backbtn.svg`} alt="Back" />
-      </Back>
+      <Back>&nbsp;</Back>
       <Detail>
         <img src={`${process.env.PUBLIC_URL}/images/detail_code.svg`} />
       </Detail>
       <SubTitle>
         <img src={`${process.env.PUBLIC_URL}/images/subtitle_invite2.svg`} />
       </SubTitle>
-      <InputGroupcode placeholder="여기에 초대코드 뜸"></InputGroupcode>
+      <InputGroupcode>{localStorage.getItem("code")}</InputGroupcode>
       <CopyBtn>
         <img src={`${process.env.PUBLIC_URL}/images/copybtn.svg`} />
       </CopyBtn>
