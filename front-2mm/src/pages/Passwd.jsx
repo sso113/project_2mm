@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import axios from "axios";
 
 const Container = styled.div`
   position: relative;
@@ -35,7 +37,7 @@ const SubTitle = styled.div`
   left: 25px;
 `;
 
-const InputName = styled.input`
+const InputPasswd = styled.input`
   position: relative;
   width: 300px;
   height: 50px;
@@ -58,9 +60,30 @@ const NextBtn = styled.div`
 
 const Passwd = () => {
   const navigate = useNavigate();
-  const gotoHome = () => {
-    navigate("/Membership4");
+
+  // const gotoHome = () => {
+  //   navigate("/Membership4");
+  // };
+
+  //로그인하는 코드
+  const [password, setPassword] = useState("");
+  const location = useLocation();
+  const { phnumber } = location.state; // 이전 페이지에서 전달된 사용자명
+
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/login/", {
+        phnumber,
+        password,
+      });
+      const token = response.data.token;
+      localStorage.setItem("token", token);
+      navigate("/Membership4"); // 페이지 이동
+    } catch (error) {
+      console.error("로그인 실패:", error);
+    }
   };
+
   return (
     <Container>
       <Back>&nbsp;</Back>
@@ -70,8 +93,14 @@ const Passwd = () => {
       <SubTitle>
         <img src={`${process.env.PUBLIC_URL}/images/passwdtitle.svg`} />
       </SubTitle>
-      <InputName placeholder="영어, 숫자 포함 8자리를 입력하세요."></InputName>
-      <NextBtn onClick={gotoHome}>
+      <InputPasswd
+        type="password"
+        placeholder="영어, 숫자 포함 8자리를 입력하세요."
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      ></InputPasswd>
+      {/* 로그인 버튼 */}
+      <NextBtn onClick={handleLogin}>
         <img src={`${process.env.PUBLIC_URL}/images/startbtn.svg`} />
       </NextBtn>
     </Container>
