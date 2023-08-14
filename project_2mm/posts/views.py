@@ -71,7 +71,7 @@ class GroupPostView(views.APIView):
 class GroupPostDetailView(views.APIView):
     def get(self, request, code, post_id):
         try:
-            post = Post.objects.get(group_code_code=code, id=post_id)
+            post = Post.objects.get(group_code__code=code, id=post_id)
             serializer = serializers.GroupPostSerializer(post)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Post.DoesNotExist:
@@ -127,10 +127,13 @@ class GroupPostDetailView(views.APIView):
 
 #댓글
 class CommentView(views.APIView):
+
     def get(self, request, group_code, post_id):
         comments = Comment.objects.filter(post_id=post_id)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
+    
+    # ... other methods ...
 
     def post(self, request, group_code, post_id):
         if request.user.is_authenticated:
@@ -142,6 +145,7 @@ class CommentView(views.APIView):
         else:
             return Response({'error': '사용자가 없어'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    
     # 댓글 수정 
     def patch(self, request, group_code, post_id, comment_id):
         comment = Comment.objects.get(id=comment_id, post_id=post_id)
@@ -217,51 +221,40 @@ class GroupPlanView(views.APIView):
         if request.user.is_authenticated:
             serializer = serializers.GroupPlanSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-
             user = request.user  # 로그인한 사용자 가져오기
-
             group = get_object_or_404(models.Group, code=group_code)
             plan = serializer.save(group_code=group)  # group_code에 해당 그룹 할당
-
             return Response(serializers.GroupPlanSerializer(plan).data, status=status.HTTP_201_CREATED)
         else:
             return Response({'error': '사용자 x'},status=status.HTTP_401_UNAUTHORIZED)
 
 #그룹 일정 상세 페이지 
 class GroupPlanDetailView(APIView):
-    def get_object(self, id, code):
+    def get(self, request,  group_code, plan_id):
         try:
-            return Plan.objects.get(id=id, group_code__code=code)
-        except Plan.DoesNotExist:
-            return None
-    
-    def get(self, request, code, id):
-        plan = self.get_object(id=id, code=code)
-        if plan is None:
+            plan = models.Plan.objects.get(group_code__code=group_code, id=plan_id)
+            serializer = serializers.GroupPlanSerializer(plan)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except models.Plan.DoesNotExist:
             return Response({'error': '일정 x'}, status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = GroupPlanSerializer(plan)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request, code, id, format=None):
+    
+    def patch(self, request,  group_code, plan_id):
         try:
-            plan = self.get_object(id=id, code=code)
-            if plan is None:
-                return Response({'실패': '해당 모임 없음'}, status=status.HTTP_404_NOT_FOUND)
-            
-            serializer = GroupPlanSerializer(plan, data=request.data, partial=True)
+            queryset = models.Plan.objects.get(group_code__code=group_code, id=plan_id)
+            serializer = serializers.GroupPlanSerializer(queryset, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.data)
             else:
-                return Response({'실패': '해당 모임 없음'}, serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except models.Plan.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'실패': '모임생성안됨'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def delete(self, request, code, id, format=None):
-        plan = self.get_object(id=id, code=code)
+    def delete(self, request, group_code, plan_id, format=None):
+        plan = models.Plan.objects.get(group_code__code=group_code, id=plan_id)
         if plan is None:
             return Response({'실패': '해당 모임 없음'}, status=status.HTTP_404_NOT_FOUND)
-        
         plan.delete()
         return Response({'성공': '삭제완료'}, status=status.HTTP_204_NO_CONTENT)
