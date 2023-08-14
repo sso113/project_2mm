@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import axios from "axios";
 
 const Container = styled.div`
   position: relative;
@@ -46,22 +49,6 @@ const ImageUpload = styled.div`
   border-radius: 16px;
 `;
 
-const InputGroupname = styled.input`
-  position: relative;
-  width: 300px;
-  height: 50px;
-  left: 22px;
-  top: 55px;
-  border-radius: 7px;
-  border: 1.5px solid #0085ff;
-  font-size: 20px;
-  padding-left: 15px;
-
-  ::placeholder {
-    color: #7c7c7c;
-  }
-`;
-
 const GroupName = styled.div`
   position: relative;
   width: 200px;
@@ -92,62 +79,111 @@ const GroupDetail = styled.div`
   color: #181818;
 `;
 
-const OneContainer = styled.div`
-  position: relative;
-  width: 50px;
-  height: 50px;
-  bottom: 480px;
-  left: 30px;
-  border-radius: 25px; /* 반지름을 width와 height의 절반으로 설정 */
-  overflow: hidden;
-`;
-
-const OneImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-`;
-
-const One_Name = styled.div`
-  position: relative;
-  width: 36px;
-  height: 36px;
-  bottom: 510px;
-  left: 100px;
-  flex-shrink: 0;
-  border-radius: 36px;
-`;
-
 const NextBtn = styled.div`
   position: relative;
-  bottom: 350px;
+  bottom: 440px;
   left: 22px;
+`;
+const BoxZone = styled.div`
+  position: relative;
+  bottom: 490px;
+  width: 300px;
+  height: 170px;
+  margin: auto;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  &::-webkit-scrollbar {
+    /* WebKit 브라우저의 스크롤바를 숨김 */
+    width: 0;
+    background: transparent;
+  }
+`;
+const Box = styled.div`
+  position: relative;
+  margin-bottom: 10px;
+  width: 340px;
+  height: 45px;
+  display: flex;
+  flex-direction: vertical;
+  align-items: center;
+  justify-content: left;
+`;
+
+const ProfileImg = styled.div`
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px; /* 반지름을 width와 height의 절반으로 설정 */
+  overflow: hidden;
+`;
+const NameText = styled.div`
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+  color: #000;
+  font-family: Inter;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
 `;
 
 const Signup2_old = () => {
   const navigate = useNavigate();
 
-  const handleBackClick = () => {
-    navigate("/signup1_old");
-  };
+  // const handleBackClick = () => {
+  //   navigate("/signup1_old");
+  // };
 
   const handleNextClick = () => {
     navigate("/signup3_old");
   };
 
-  const [selectedImage, setSelectedImage] = useState(null);
-  const groupdetail = ""; // 여기에서 groupdetail을 적절한 값으로 설정해주세요.
+  const location = useLocation();
+  // 이전 페이지에서 전달된 초대코드
+  const { invitecode } = location.state;
+  console.log(invitecode);
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0]; // 선택한 이미지 파일 가져오기
-    setSelectedImage(file); // 선택한 이미지 상태 업데이트
-  };
+  const [group, setGroup] = useState(null);
+  const [users, setUsers] = useState([]); // 추가
+  const [postLoading, setPostLoading] = useState(true);
 
-  const groupname = ""; // 여기에서 groupname을 적절한 값으로 설정해주세요.
+  useEffect(() => {
+    const fetchData = async () => {
+      setPostLoading(true);
+      try {
+        // API 호출
+        const response = await axios.get(
+          `http://127.0.0.1:8000/group/${invitecode}/`
+        );
+        setGroup(response.data);
+        setUsers(response.data.user); // users배열에 저장 추가
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+      setPostLoading(false); // 로딩 상태 변경
+    };
+    fetchData(); // fetchData 함수 호출 (데이터를 서버에서 가져옴)
+  }, [invitecode]); // invitecode가 변경될 때마다 데이터를 다시 불러오도록
+
+  if (postLoading) {
+    return <div>대기중...</div>;
+  }
+
+  // // 화면 로드할 때 불러와지게
+  // useEffect(() => {
+  //   axios.get(`http://127.0.0.1:8000/group/${invitecode}/`).then((response) => {
+  //     setGroup(response.data);
+  //     setUsers(response.data.user); // users배열에 저장 추가
+  //     setPostLoading(false);
+  //   });
+  // }, []);
 
   return (
     <Container>
-      <Back onClick={handleBackClick}>
+      <Back>
         <img src={`${process.env.PUBLIC_URL}/images/backbtn.svg`} alt="Back" />
       </Back>
       <SubTitle>
@@ -161,27 +197,27 @@ const Signup2_old = () => {
           src={`${process.env.PUBLIC_URL}/images/whitebox2.svg`}
           alt="WhiteBox"
         />
+        {/* 여기에 모임 이미지 떠야 함 */}
         <ImageUpload>
-          <img src={`${process.env.PUBLIC_URL}/images/image_upload.svg`} />
+          <img src={group && group.profile} />
         </ImageUpload>
-        <GroupName placeholder="화목한 우리 가족">
-          {groupname}화목한 우리 가족
-        </GroupName>
-        <GroupDetail placeholder="세상에서 제일 멋진 우리 집!">
-          {groupdetail}세상에서 제일 멋진 우리 집
-        </GroupDetail>
-        <OneContainer>
-          <OneImage
-            src={`${process.env.PUBLIC_URL}/images/one.svg`}
-            alt="One"
-          />
-        </OneContainer>
-        <One_Name>
-          <img
-            src={`${process.env.PUBLIC_URL}/images/one_name.svg`}
-            alt="One Name"
-          />
-        </One_Name>
+        <GroupName>{group && group.name}</GroupName>
+        <GroupDetail>{group && group.info}</GroupDetail>
+        <BoxZone>
+          {/* 사용자 목록 출력 */}
+          {users.map((userObj) => (
+            <Box key={userObj.user}>
+              <ProfileImg>
+                <img
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  src={userObj.profile}
+                  alt={`Profile of ${userObj.user}`}
+                />
+              </ProfileImg>
+              <NameText>{userObj.user}</NameText>
+            </Box>
+          ))}
+        </BoxZone>
       </WhiteBox>
       <NextBtn onClick={handleNextClick}>
         <img src={`${process.env.PUBLIC_URL}/images/nextbtn.svg`} alt="Next" />

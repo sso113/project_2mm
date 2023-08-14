@@ -76,7 +76,7 @@ const Login = () => {
       {/* 인풋 박스 */}
       <InputNumber
         type="text"
-        placeholder="010-1234-5678"
+        placeholder="+8210뒤에 전화번호 8자리를 입력해주세요"
         value={phnumber}
         onChange={(e) => setPhnumber(e.target.value)}
       ></InputNumber>

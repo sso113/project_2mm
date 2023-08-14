@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const Container = styled.div`
   position: relative;
@@ -55,13 +56,16 @@ const NextBtn = styled.div`
 const Signup1_old = () => {
   const navigate = useNavigate(); // useNavigate 초기화
 
-  const handleBackClick = () => {
-    navigate("/signup1_new"); // Go back to the previous page
+  // const handleBackClick = () => {
+  //   navigate("/signup1_new"); // Go back to the previous page
+  // };
+
+  // 다음 페이지로 이동
+  const handleNextClick = () => {
+    navigate("/signup2_old", { state: { invitecode } });
   };
 
-  const handleNextClick = () => {
-    navigate("/signup2_old"); // Use navigate to transition to another page
-  };
+  const [invitecode, setInvitecode] = useState("");
 
   return (
     <Container>
@@ -71,7 +75,12 @@ const Signup1_old = () => {
       <SubTitle>
         <img src={`${process.env.PUBLIC_URL}/images/subtitle_code.svg`} />
       </SubTitle>
-      <InputCode placeholder="영어,숫자 포함 8자리를 입력하세요"></InputCode>
+      <InputCode
+        type="text"
+        value={invitecode}
+        onChange={(e) => setInvitecode(e.target.value)}
+        placeholder="초대코드를 입력해주세요"
+      ></InputCode>
       <NextBtn onClick={handleNextClick}>
         <img src={`${process.env.PUBLIC_URL}/images/nextbtn.svg`} alt="Next" />
       </NextBtn>
