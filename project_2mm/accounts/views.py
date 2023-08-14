@@ -82,9 +82,11 @@ class SingupView(APIView):
             if user_info is not None :
                 print("유저 정보 생성됐다.")
             token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=status.HTTP_200_OK)
+            response_data = {'token': token.key, 'is_successful': True}
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            response_data = {'errors': serializer.errors, 'is_successful': False}
+            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, format=None):
         try:

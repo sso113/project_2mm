@@ -127,10 +127,13 @@ class GroupPostDetailView(views.APIView):
 
 #댓글
 class CommentView(views.APIView):
+
     def get(self, request, group_code, post_id):
         comments = Comment.objects.filter(post_id=post_id)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
+    
+    # ... other methods ...
 
     def post(self, request, group_code, post_id):
         if request.user.is_authenticated:
@@ -142,6 +145,7 @@ class CommentView(views.APIView):
         else:
             return Response({'error': '사용자가 없어'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    
     # 댓글 수정 
     def patch(self, request, group_code, post_id, comment_id):
         comment = Comment.objects.get(id=comment_id, post_id=post_id)

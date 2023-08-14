@@ -46,11 +46,41 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'rest_framework.authtoken',
     'corsheaders',
-
+    
+    #social login
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    
     # created apps
     'posts',
     'accounts',
+
+    #provider 
+    'allauth.socialaccount.providers.kakao',
 ]
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'kakao': {
+        'APP': {
+            'client_id': '2103c1e9e9ec3c9736da56b28c6bbe14',
+            'secret': 954168,
+            'key': ''
+        }
+    }
+}
+
+LOGIN_REDIRECT_URL = '/'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', 
