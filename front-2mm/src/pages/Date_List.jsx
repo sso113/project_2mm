@@ -2,6 +2,9 @@ import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import styled from "styled-components";
 
+//
+date_list;
+
 const Container = styled.div`
   position: relative;
   margin: 30px 0;
