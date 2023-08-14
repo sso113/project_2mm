@@ -82,9 +82,11 @@ class SingupView(APIView):
             if user_info is not None :
                 print("유저 정보 생성됐다.")
             token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=status.HTTP_200_OK)
+            response_data = {'token': token.key, 'is_successful': True}
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            response_data = {'errors': serializer.errors, 'is_successful': False}
+            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, format=None):
         try:
@@ -117,10 +119,31 @@ class PasswordView(APIView):
             return Response({'message': '비밀번호가 업데이트되었습니다.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class MypageView(APIView) :
+    def get(self, request):
+        user_info = UserInfo.objects.get(user=request.user)
+        serializer = serializers.MypageSerializer(user_info)  # many=True 옵션 제거
+        return Response(serializer.data)
+
+    def patch(self, request, format=None):
+        try:
+            user_info = UserInfo.objects.get(user=request.user)
+            serializer = serializers.MypageSerializer(user_info, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.update(user_info, serializer.validated_data)
+                serializer.save() 
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except UserInfo.DoesNotExist:
+            return Response({'detail': 'User info not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class GroupListCreateView(generics.CreateAPIView):
     queryset = models.Group.objects.all()
     serializer_class = serializers.GroupCreateSerializer
-    
+
     def perform_create(self, serializer):
         user = self.request.user
         userinfo = user.userinfo
@@ -130,6 +153,13 @@ class GroupListCreateView(generics.CreateAPIView):
         group.save()
         
         group.user.add(userinfo)
+
+    def get(self, request):
+        user = self.request.user
+        groups = models.Group.get_groups_for_user(user)
+
+        serializer = serializers.GroupDetailSerializer(groups, many=True)
+        return Response(serializer.data)
 
 class GroupDetailView(APIView):
     def get_object(self, code):

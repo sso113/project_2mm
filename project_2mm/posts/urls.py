@@ -1,14 +1,5 @@
-from rest_framework.routers import SimpleRouter, DefaultRouter
-from django.urls import path, include
-from .views import PostViewSet,GroupPostView, GroupPostDetailView
+from django.urls import path
 from . import views
-post_router = DefaultRouter()
-post_router.register('posts', PostViewSet,basename='post')
-
-album_router =  DefaultRouter()
-album_router.register('album', views.AlbumViewSet, basename='album')
-
-
 
 urlpatterns = [
     # 앨범
@@ -26,5 +17,5 @@ urlpatterns = [
 
     # 모임별 일정 
     path('group/<uuid:group_code>/plans/', views.GroupPlanView.as_view(), name='plan_list'),
-    path('group/<uuid:code>/plans/<int:plan_id>/', views.GroupPlanDetailView.as_view(), name='plan_detail'),
+    path('group/<uuid:group_code>/plans/<int:plan_id>/', views.GroupPlanDetailView.as_view(), name='group-plan-detail')
 ]
