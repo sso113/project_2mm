@@ -4,13 +4,13 @@ from rest_framework.response import Response
 from rest_framework import status,viewsets
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import  IsAuthenticated
-from .models import Post,Comment
-from .serializers import PostSerializer,CommentSerializer
+from .models import Post,Comment, Plan, Group
+from .serializers import PostSerializer,CommentSerializer, GroupPlanSerializer
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from . import models
 from . import serializers
-
+from rest_framework.views import APIView
 # 특정 그룹 게시글 작성 
 class PostViewSet(viewsets.ModelViewSet):
     #post_list
@@ -67,12 +67,11 @@ class GroupPostView(views.APIView):
         else:
             return Response({'error': '사용자 x'},status=status.HTTP_401_UNAUTHORIZED)
 
-    
 #그룹의 게시글 상세 페이지 
 class GroupPostDetailView(views.APIView):
     def get(self, request, code, post_id):
         try:
-            post = Post.objects.get(group_code__code=code, id=post_id)
+            post = Post.objects.get(group_code_code=code, id=post_id)
             serializer = serializers.GroupPostSerializer(post)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Post.DoesNotExist:
@@ -166,21 +165,42 @@ class CommentView(views.APIView):
             comment.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-           return Response({'error': '작성자랑 유저랑 불일치'}, status=status.HTTP_403_FORBIDDEN)
-        
-# 앨범 
-class AlbumViewSet(ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = serializers.AlbumSerializer
+            return Response({'error': '작성자랑 유저랑 불일치'}, status=status.HTTP_403_FORBIDDEN)
 
-# 앨범 내 다운로드 기능 
-class DownloadView(viewsets.ViewSet):
-    def download(self, request, post_id): 
-        post = get_object_or_404(models.Post, id=post_id)
+# 그룹별 앨범 사진목록 
+class AlbumViewSet(views.APIView):
+    def get(self, request, group_code):
+        try:
+            group = models.Group.objects.get(code=group_code)
+            posts = Post.objects.filter(group_code=group)
+            serializer = serializers.AlbumSerializer(posts, many=True)
+            return Response(serializer.data)
+        except models.Group.DoesNotExist:
+            return Response({'error': '그룹 x'},status=status.HTTP_404_NOT_FOUND)
+    
+# 앨범 상세 페이지
+class AlbumDetailViewSet(views.APIView):
+    def get(self, request, group_code, post_id):
+        try:
+            post = get_object_or_404(models.Post, id=post_id)
+            serializer = serializers.AlbumSerializer(post)
+            return Response(serializer.data)
+        except models.Group.DoesNotExist:
+            return Response({'error': '그룹 x'},status=status.HTTP_404_NOT_FOUND)
+
+# 앨범 사진 다운로드 
+class AlbumDownloadView(viewsets.ViewSet):
+    def download(self, request, group_code, post_id): 
+        post = get_object_or_404(models.Post, id=post_id, group_code=group_code)
         image = post.image
         path = image.path
-        response = FileResponse(open(path, 'rb'))
-        return response
+
+        try:
+            response = FileResponse(open(path, 'rb'))
+            response['Content-Disposition'] = f'attachment; filename="{image.name}"'
+            return response
+        except FileNotFoundError:
+            return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def list(self, request):  
         return Response({"detail": "This endpoint supports GET only."})
@@ -211,30 +231,41 @@ class GroupPlanView(views.APIView):
         else:
             return Response({'error': '사용자 x'},status=status.HTTP_401_UNAUTHORIZED)
 
-    # plan delete도 나중에 필요하면 추가
-    # def delete(self, request, code, post_id):
-    #     pass
-
-#그룹의 게시글 상세 페이지 
-class GroupPlanDetailView(views.APIView):
-    def get(self, request, code, plan_id):
+#그룹 일정 상세 페이지 
+class GroupPlanDetailView(APIView):
+    def get_object(self, id, code):
         try:
-            plan = Post.objects.get(group_code__code=code, id=plan_id)
-            serializer = serializers.GroupPlanSerializer(plan)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Post.DoesNotExist:
+            return Plan.objects.get(id=id, group_code__code=code)
+        except Plan.DoesNotExist:
+            return None
+    
+    def get(self, request, code, id):
+        plan = self.get_object(id=id, code=code)
+        if plan is None:
             return Response({'error': '일정 x'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = GroupPlanSerializer(plan)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def patch(self, request, plan_id, format=None):
+    def patch(self, request, code, id, format=None):
         try:
-            queryset = models.Plan.objects.get(id=plan_id)
-            serializer = serializers.GroupPlanSerializer(queryset, data=request.data, partial=True)
+            plan = self.get_object(id=id, code=code)
+            if plan is None:
+                return Response({'실패': '해당 모임 없음'}, status=status.HTTP_404_NOT_FOUND)
+            
+            serializer = GroupPlanSerializer(plan, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except models.Plan.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+                return Response({'실패': '해당 모임 없음'}, serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'실패': '모임생성안됨'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, code, id, format=None):
+        plan = self.get_object(id=id, code=code)
+        if plan is None:
+            return Response({'실패': '해당 모임 없음'}, status=status.HTTP_404_NOT_FOUND)
+        
+        plan.delete()
+        return Response({'성공': '삭제완료'}, status=status.HTTP_204_NO_CONTENT)

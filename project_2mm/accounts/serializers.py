@@ -55,14 +55,28 @@ class GroupSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source='user.username')
     class Meta:
         model = models.Group
-        fields = ['name','info', 'profile', 'username', 'code']
+        fields = ['name', 'info', 'profile', 'username', 'code']
+
     def update(self, instance, validated_data):
         # 코드 값을 무시하고 업데이트할 필드만 validated_data에서 추출하는 메소드
         validated_data.pop('code', None)
         return super().update(instance, validated_data)
 
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.UserInfo
+        fields = ['user', 'profile']
+
+
+class MypageSerializer(serializers.ModelSerializer) :
+    class Meta :
+        model = models.UserInfo
+        fields = ['profile', 'phone']
+
 class GroupDetailSerializer(serializers.ModelSerializer):
+    user = UserInfoSerializer(many=True, source='user.all')  # Many-to-Many 관계에서 사용자 정보를 가져옵니다.
+
     class Meta:
         model = models.Group
         fields = '__all__'
-        read_only_fields = ['code', 'user', 'name']
+        read_only_fields = ['code', 'name', 'profile']
