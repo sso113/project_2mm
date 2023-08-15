@@ -82,9 +82,12 @@ const NewBtn = styled.div`
 
 const Date_Write = () => {
   const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [newDate, setNewDate] = useState(""); // 추가
 
   const onClick = () => {
-    navigate("/Date_List");
+    // 일정을 추가한 후 "Date_List" 페이지로 이동할 때 추가한 일정 정보를 query parameter로 전달
+    navigate(`/Date_List?newDate=${encodeURIComponent(newDate)}`);
   };
 
   return (
@@ -98,7 +101,11 @@ const Date_Write = () => {
       <SubTitle>
         <img src={`${process.env.PUBLIC_URL}/images/subtitle_ask (2).svg`} />
       </SubTitle>
-      <InputDate></InputDate>
+      <InputDate
+        value={newDate}
+        onChange={(e) => setNewDate(e.target.value)}
+        placeholder="일정을 입력하세요"
+      />
       <SubTitle2>
         <img src={`${process.env.PUBLIC_URL}/images/subtitle_write.svg`} />
       </SubTitle2>

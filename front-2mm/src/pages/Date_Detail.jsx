@@ -34,10 +34,17 @@ const Year = styled.div`
 
 const Month = styled.div`
   position: relative;
-  width: 45px;
-  height: 18px;
+  width: 60px;
+  height: 38px;
   left: 172px;
   top: 40px;
+
+  font-family: "SUIT";
+  font-style: normal;
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 38px;
+  color: #0057ff;
 `;
 
 const Pass = styled.div`
@@ -53,7 +60,7 @@ const Next = styled.div`
   width: 45px;
   height: 18px;
   left: 240px;
-  bottom: 10px;
+  bottom: 7px;
 `;
 
 const PlusBtn = styled.div`
@@ -79,9 +86,7 @@ const Date_Detail = () => {
       <Year>
         <img src={`${process.env.PUBLIC_URL}/images/year.svg`} />
       </Year>
-      <Month>
-        <img src={`${process.env.PUBLIC_URL}/images/month2.svg`} />
-      </Month>
+      <Month>8월</Month>
       <Pass>
         <img src={`${process.env.PUBLIC_URL}/images/pass.svg`} />
       </Pass>

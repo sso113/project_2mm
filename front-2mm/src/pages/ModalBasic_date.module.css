@@ -8,23 +8,26 @@
   left: 49.98%;
   transform: translate(-50%, -50%);
 
-  background-color: AAAAAA;
+  background-color: #ffffff;
 }
 
 .rewrite {
   position: relative;
   width: 375px;
-  top: 3px;
+  bottom: 20px;
+  left: 1px;
 }
 
 .delete {
   position: relative;
-  top: -2px;
+  bottom: 25px;
+  left: 1px;
   width: 375px;
 }
 
 .cancel {
   position: relative;
-  top: 0px;
+  bottom: 30px;
+  left: 1px;
   width: 375px;
 }

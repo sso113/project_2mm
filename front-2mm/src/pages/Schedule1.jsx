@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { DateText } from "./Schedule1"; // 필요에 따라 import 경로를 조정하세요
 
 const Container = styled.div`
   position: relative;
@@ -73,20 +74,20 @@ const NextBtn = styled.div`
 const Schedule1 = () => {
   const navigate = useNavigate();
 
-  // back_btn 이동
   const onClickBack = () => {
     navigate("/Schedule");
   };
 
   const onClickPost = () => {
-    navigate("/Schedule2");
+    navigate(
+      `/Date_Write?recognizedText=${encodeURIComponent(recognizedText)}`
+    );
   };
 
-  const [recognizedText, setRecognizedText] = useState(""); // 음성으로 변환된 텍스트 상태
-  const [isRecognizing, setIsRecognizing] = useState(false); // 음성 인식 중 여부 상태
+  const [recognizedText, setRecognizedText] = useState("");
+  const [isRecognizing, setIsRecognizing] = useState(false);
   const recognitionRef = useRef(null);
 
-  // 음성 인식 코드
   const handleSpeechToText = () => {
     if ("webkitSpeechRecognition" in window) {
       recognitionRef.current = new window.webkitSpeechRecognition();
@@ -142,8 +143,8 @@ const Schedule1 = () => {
         />
       </VoiceBtn>
       <InputText
-        value={recognizedText} // 음성으로 변환된 텍스트를 input 값으로 설정
-        onChange={(event) => setRecognizedText(event.target.value)} // input 값이 변경될 때마다 상태 업데이트
+        value={recognizedText}
+        onChange={(event) => setRecognizedText(event.target.value)}
       />
       <NextBtn onClick={onClickPost}>
         <img
